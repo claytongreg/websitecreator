@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
 
 // POST /api/ai/generate — Generate or edit HTML using AI
 export async function POST(req: NextRequest) {
-  const { prompt, model, currentHtml, selectedElement } = await req.json();
+  const { prompt, model, siteId, currentHtml, selectedElement } = await req.json();
 
   // Build the system prompt for HTML editing
   const systemPrompt = `You are an expert web developer. The user is editing a website using a visual editor.
@@ -73,7 +74,33 @@ Modify the HTML to fulfill this request. Return the complete modified HTML docum
     const outputTokens = Math.ceil(html.length / 4);
     const costCents = estimateCost(model, inputTokens, outputTokens);
 
-    // TODO: Log usage to database
+    // Log usage to database
+    try {
+      // Find user from site ownership (TODO: use auth session instead)
+      const site = siteId
+        ? await db.site.findUnique({ where: { id: siteId }, select: { userId: true } })
+        : null;
+      const userId = site?.userId ?? (await db.user.findFirst())?.id;
+
+      if (userId) {
+        const { getModel } = await import("@/lib/ai");
+        const modelInfo = getModel(model);
+        await db.usageRecord.create({
+          data: {
+            userId,
+            provider: modelInfo?.provider ?? "unknown",
+            model,
+            inputTokens,
+            outputTokens,
+            costCents,
+            action: selectedElement ? "edit_element" : "edit_page",
+          },
+        });
+      }
+    } catch (logError) {
+      console.error("Failed to log usage:", logError);
+      // Don't fail the request if logging fails
+    }
 
     return NextResponse.json({
       html,
