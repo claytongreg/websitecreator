@@ -19,6 +19,7 @@ import {
   ArrowUp,
   ArrowDown,
   Pencil,
+  MoveHorizontal,
 } from "lucide-react";
 
 interface FloatingToolbarProps {
@@ -33,15 +34,17 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
   const [mounted, setMounted] = useState(false);
   const [contentOpen, setContentOpen] = useState(false);
   const [contentValue, setContentValue] = useState("");
+  const [resizeOpen, setResizeOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Close content panel when selection changes
+  // Close panels when selection changes
   useEffect(() => {
     setContentOpen(false);
+    setResizeOpen(false);
   }, [selectedElement?.path]);
 
   const computePosition = useCallback(() => {
@@ -215,29 +218,36 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
         </>
       )}
 
-      {/* Move Up/Down — sections only */}
-      {elementType === "section" && (
-        <>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-1.5"
-            title="Move up"
-            onClick={handleMoveUp}
-          >
-            <ArrowUp className="w-3 h-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-1.5"
-            title="Move down"
-            onClick={handleMoveDown}
-          >
-            <ArrowDown className="w-3 h-3" />
-          </Button>
-        </>
-      )}
+      {/* Move Up/Down — all elements */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-7 px-1.5"
+        title="Move up"
+        onClick={handleMoveUp}
+      >
+        <ArrowUp className="w-3 h-3" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-7 px-1.5"
+        title="Move down"
+        onClick={handleMoveDown}
+      >
+        <ArrowDown className="w-3 h-3" />
+      </Button>
+
+      {/* Resize width */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className={`h-7 px-1.5 ${resizeOpen ? "bg-accent" : ""}`}
+        title="Resize width"
+        onClick={() => setResizeOpen(!resizeOpen)}
+      >
+        <MoveHorizontal className="w-3 h-3" />
+      </Button>
 
       {/* Duplicate — always shown */}
       <Button
@@ -301,10 +311,37 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
     </div>
   ) : null;
 
+  const resizePanel = resizeOpen && position ? (
+    <div
+      className="fixed z-50 bg-white rounded-lg shadow-xl border p-1.5 flex gap-1"
+      style={{ top: position.top + 44, left: position.left }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {["25%", "33%", "50%", "75%", "100%", "auto"].map((w) => (
+        <Button
+          key={w}
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2 text-xs"
+          onClick={() => {
+            iframeRef.current?.contentWindow?.postMessage(
+              { type: "wc_resize", width: w === "auto" ? "" : w },
+              "*"
+            );
+            setResizeOpen(false);
+          }}
+        >
+          {w}
+        </Button>
+      ))}
+    </div>
+  ) : null;
+
   return createPortal(
     <>
       {toolbar}
       {contentPanel}
+      {resizePanel}
     </>,
     document.body
   );

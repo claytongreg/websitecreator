@@ -99,6 +99,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       history: newHistory,
       historyIndex: newHistory.length - 1,
       html: action.after,
+      selectedElement: null,
     });
   },
 
@@ -106,14 +107,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const { history, historyIndex } = get();
     if (historyIndex < 0) return;
     const action = history[historyIndex];
-    set({ historyIndex: historyIndex - 1, html: action.before });
+    set({ historyIndex: historyIndex - 1, html: action.before, selectedElement: null });
   },
 
   redo: () => {
     const { history, historyIndex } = get();
     if (historyIndex >= history.length - 1) return;
     const action = history[historyIndex + 1];
-    set({ historyIndex: historyIndex + 1, html: action.after });
+    set({ historyIndex: historyIndex + 1, html: action.after, selectedElement: null });
   },
 
   canUndo: () => get().historyIndex >= 0,

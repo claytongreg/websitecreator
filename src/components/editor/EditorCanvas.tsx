@@ -273,6 +273,22 @@ const IFRAME_SCRIPT = `
         }, '*');
       }
     }
+    // Resize element width
+    if (e.data.type === 'wc_resize' && __wc_selectedEl) {
+      if (e.data.width) {
+        __wc_selectedEl.style.width = e.data.width;
+        __wc_selectedEl.style.maxWidth = e.data.width;
+      } else {
+        __wc_selectedEl.style.width = '';
+        __wc_selectedEl.style.maxWidth = '';
+      }
+      sendSelectionRect();
+      window.parent.postMessage({
+        type: 'wc_html_changed',
+        newHTML: getCleanHTML(),
+        movedPath: getElementPath(__wc_selectedEl),
+      }, '*');
+    }
   });
 
   // Signal ready
