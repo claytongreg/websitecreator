@@ -1,4 +1,4 @@
-# WebsiteCreator
+# EchoWebo
 
 > **Sync Policy**: Project-specific guidance. For general workflow practices, see the root workspace [`../CLAUDE.md`](../CLAUDE.md).
 

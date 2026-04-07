@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   let user = await db.user.findFirst();
   if (!user) {
     user = await db.user.create({
-      data: { email: "demo@websitecreator.com", name: "Demo User" },
+      data: { email: "demo@echowebo.com", name: "Demo User" },
     });
   }
 

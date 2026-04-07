@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const resp = await fetch(url, {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; WebsiteCreator/1.0; +https://websitecreator.com)",
+          "Mozilla/5.0 (compatible; EchoWebo/1.0; +https://echowebo.com)",
       },
       signal: AbortSignal.timeout(10000),
     });

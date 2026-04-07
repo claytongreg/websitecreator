@@ -40,7 +40,7 @@ export default function DashboardPage() {
       <header className="border-b">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold">
-            WebsiteCreator
+            EchoWebo
           </Link>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">My Sites</span>
@@ -89,7 +89,7 @@ export default function DashboardPage() {
                       <Globe className="w-4 h-4 text-green-600" />
                     )}
                   </CardTitle>
-                  <CardDescription>{site.subdomain}.websitecreator.com</CardDescription>
+                  <CardDescription>{site.subdomain}.echowebo.com</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between">

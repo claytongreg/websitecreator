@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WebsiteCreator — AI Website Builder",
+  title: "EchoWebo — AI Website Builder",
   description:
     "Build and edit websites visually with AI. Click to edit, prompt to transform.",
 };

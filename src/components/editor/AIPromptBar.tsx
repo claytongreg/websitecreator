@@ -13,20 +13,31 @@ import {
 import { useEditorStore } from "@/lib/editor/store";
 import { Loader2, Send, Undo2, Redo2 } from "lucide-react";
 
+// All available models with clear pricing
 const MODELS = [
-  { id: "gpt-4o-mini", name: "GPT-4o Mini", cost: "~$0.001" },
-  { id: "gpt-4o", name: "GPT-4o", cost: "~$0.005" },
-  { id: "claude-haiku-4-5-20251001", name: "Claude Haiku", cost: "~$0.002" },
-  { id: "claude-sonnet-4-20250514", name: "Claude Sonnet", cost: "~$0.008" },
-  { id: "gemini-2.0-flash", name: "Gemini Flash", cost: "~$0.001" },
+  // Budget
+  { id: "gpt-4o-mini",                name: "GPT-4o Mini",       provider: "OpenAI",    tier: "budget",  costPer: "$0.001" },
+  { id: "gemini-2.0-flash",           name: "Gemini 2.0 Flash",  provider: "Google",    tier: "budget",  costPer: "$0.001" },
+  { id: "claude-haiku-4-5-20251001",  name: "Claude Haiku 4.5",  provider: "Anthropic", tier: "budget",  costPer: "$0.002" },
+  // Standard
+  { id: "gpt-4o",                     name: "GPT-4o",            provider: "OpenAI",    tier: "standard", costPer: "$0.005" },
+  { id: "gemini-2.0-pro",             name: "Gemini 2.0 Pro",    provider: "Google",    tier: "standard", costPer: "$0.004" },
+  // Premium
+  { id: "claude-sonnet-4-20250514",   name: "Claude Sonnet 4",   provider: "Anthropic", tier: "premium",  costPer: "$0.008" },
 ];
+
+const TIER_LABELS: Record<string, string> = {
+  budget: "Budget",
+  standard: "Standard",
+  premium: "Premium",
+};
 
 interface Props {
   siteId: string;
   pageSlug: string;
 }
 
-export function AIPromptBar({ siteId, pageSlug }: Props) {
+export function AIPromptBar({ siteId }: Props) {
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState("gpt-4o-mini");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -59,7 +70,6 @@ export function AIPromptBar({ siteId, pageSlug }: Props) {
           prompt: prompt.trim(),
           model,
           siteId,
-          pageSlug,
           currentHtml: html,
           selectedElement: selectedElement
             ? {
@@ -100,6 +110,9 @@ export function AIPromptBar({ siteId, pageSlug }: Props) {
 
   const selectedModel = MODELS.find((m) => m.id === model);
 
+  // Group models by tier for the dropdown
+  const tiers = ["budget", "standard", "premium"];
+
   return (
     <div className="border-t px-4 py-3 flex items-center gap-3">
       {/* Undo/Redo */}
@@ -124,20 +137,47 @@ export function AIPromptBar({ siteId, pageSlug }: Props) {
         </Button>
       </div>
 
-      {/* Model picker */}
+      {/* Model picker with pricing */}
       <Select value={model} onValueChange={(v) => v && setModel(v)}>
-        <SelectTrigger className="w-44">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {MODELS.map((m) => (
-            <SelectItem key={m.id} value={m.id}>
-              <span className="flex items-center justify-between gap-2 w-full">
-                <span>{m.name}</span>
-                <span className="text-xs text-muted-foreground">{m.cost}</span>
+        <SelectTrigger className="w-52">
+          <SelectValue>
+            {selectedModel && (
+              <span className="flex items-center gap-2">
+                <span className="truncate">{selectedModel.name}</span>
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  {selectedModel.costPer}
+                </span>
               </span>
-            </SelectItem>
-          ))}
+            )}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent className="w-72">
+          {tiers.map((tier) => {
+            const tierModels = MODELS.filter((m) => m.tier === tier);
+            if (tierModels.length === 0) return null;
+            return (
+              <div key={tier}>
+                <div className="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {TIER_LABELS[tier]}
+                </div>
+                {tierModels.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    <div className="flex items-center justify-between w-full gap-3">
+                      <div className="flex flex-col">
+                        <span className="text-sm">{m.name}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {m.provider}
+                        </span>
+                      </div>
+                      <span className="text-xs font-mono text-muted-foreground shrink-0">
+                        {m.costPer}/edit
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </div>
+            );
+          })}
         </SelectContent>
       </Select>
 
@@ -166,14 +206,9 @@ export function AIPromptBar({ siteId, pageSlug }: Props) {
         )}
       </Button>
 
-      {/* Cost display */}
-      <div className="text-xs text-muted-foreground whitespace-nowrap">
-        {selectedModel && (
-          <span className="mr-2">{selectedModel.cost}/edit</span>
-        )}
-        <span className="font-medium">
-          ${(sessionCostCents / 100).toFixed(3)} session
-        </span>
+      {/* Session cost */}
+      <div className="text-xs text-muted-foreground whitespace-nowrap font-mono">
+        ${(sessionCostCents / 100).toFixed(3)}
       </div>
     </div>
   );
