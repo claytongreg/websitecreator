@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModelSelector } from "@/components/ui/ModelSelector";
 import { useEditorStore } from "@/lib/editor/store";
+import { CostReceipt } from "./CostReceipt";
 import { Loader2, Send, Undo2, Redo2, ImagePlus } from "lucide-react";
 import { PhotoWidget } from "./PhotoWidget";
+import { toast } from "sonner";
 
 interface Props {
   siteId: string;
@@ -24,8 +26,7 @@ export function AIPromptBar({ siteId }: Props) {
     isAiLoading,
     setAiLoading,
     pushAction,
-    sessionCostCents,
-    addCost,
+    addEdit,
     undo,
     redo,
     canUndo,
@@ -59,7 +60,10 @@ export function AIPromptBar({ siteId }: Props) {
         }),
       });
 
-      if (!resp.ok) throw new Error("AI request failed");
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || `AI request failed (${resp.status})`);
+      }
 
       const data = await resp.json();
 
@@ -71,15 +75,24 @@ export function AIPromptBar({ siteId }: Props) {
           after: data.html,
           timestamp: Date.now(),
         });
+        toast.success("Edit applied");
+      } else {
+        toast.error("AI returned an empty response — try rephrasing your prompt");
       }
 
-      if (data.costCents) {
-        addCost(data.costCents);
+      if (data.costCents != null) {
+        addEdit({
+          action: selectedElement ? "edit_element" : "edit_page",
+          model: data.model ?? model,
+          costCents: data.costCents,
+          timestamp: Date.now(),
+        });
       }
 
       setPrompt("");
     } catch (err) {
       console.error("AI edit failed:", err);
+      toast.error(err instanceof Error ? err.message : "AI edit failed — check console for details");
     } finally {
       setAiLoading(false);
       inputRef.current?.focus();
@@ -153,10 +166,8 @@ export function AIPromptBar({ siteId }: Props) {
           )}
         </Button>
 
-        {/* Session cost */}
-        <div className="text-xs text-muted-foreground whitespace-nowrap font-mono">
-          ${(sessionCostCents / 100).toFixed(3)}
-        </div>
+        {/* Session cost receipt */}
+        <CostReceipt />
       </div>
     </div>
   );

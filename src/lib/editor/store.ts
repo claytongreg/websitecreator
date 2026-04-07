@@ -4,6 +4,13 @@ import { DEFAULT_THEME } from "./theme-css";
 
 type HeadingLevel = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
+export interface SessionEdit {
+  action: string;   // "generate_site" | "edit_page" | "edit_element" | "generate_image"
+  model: string;
+  costCents: number;
+  timestamp: number;
+}
+
 interface EditorState {
   // Current page HTML
   html: string;
@@ -24,6 +31,7 @@ interface EditorState {
   isAiLoading: boolean;
   aiStreamContent: string;
   sessionCostCents: number;
+  sessionEdits: SessionEdit[];
 
   // Photo widget
   isPhotoWidgetOpen: boolean;
@@ -46,6 +54,7 @@ interface EditorState {
   setAiLoading: (loading: boolean) => void;
   setAiStreamContent: (content: string) => void;
   addCost: (cents: number) => void;
+  addEdit: (edit: SessionEdit) => void;
   setPhotoWidgetOpen: (open: boolean) => void;
 }
 
@@ -60,6 +69,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   isAiLoading: false,
   aiStreamContent: "",
   sessionCostCents: 0,
+  sessionEdits: [],
   isPhotoWidgetOpen: false,
 
   setHtml: (html) => set({ html }),
@@ -124,5 +134,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setAiStreamContent: (content) => set({ aiStreamContent: content }),
   addCost: (cents) =>
     set((s) => ({ sessionCostCents: s.sessionCostCents + cents })),
+  addEdit: (edit) =>
+    set((s) => ({
+      sessionCostCents: s.sessionCostCents + edit.costCents,
+      sessionEdits: [...s.sessionEdits, edit],
+    })),
   setPhotoWidgetOpen: (open) => set({ isPhotoWidgetOpen: open }),
 }));

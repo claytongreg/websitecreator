@@ -30,9 +30,25 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [showCode, setShowCode] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { html, setHtml, setCss, theme, setTheme, showThemePanel, setShowThemePanel } = useEditorStore();
+  const { html, setHtml, setCss, theme, setTheme, showThemePanel, setShowThemePanel, addEdit } = useEditorStore();
   const codeRef = useRef<HTMLTextAreaElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Seed session cost from site generation
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cost = params.get("generationCost");
+    const genModel = params.get("generationModel");
+    if (cost) {
+      addEdit({
+        action: "generate_site",
+        model: genModel ?? "unknown",
+        costCents: parseFloat(cost),
+        timestamp: Date.now(),
+      });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [addEdit]);
 
   // Fetch site data
   useEffect(() => {

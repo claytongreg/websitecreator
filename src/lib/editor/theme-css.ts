@@ -63,11 +63,11 @@ export function generateThemeCss(theme: ThemeSettings): string {
   const headingRules = levels
     .map((tag) => {
       const s = theme.headingSizes[tag];
-      return `${tag} { font-family: '${theme.fonts.heading}', sans-serif; font-size: ${s.size}; font-weight: ${s.weight}; line-height: ${s.lineHeight}; }`;
+      return `${tag} { font-family: '${theme.fonts.heading}', sans-serif !important; font-size: ${s.size} !important; font-weight: ${s.weight} !important; line-height: ${s.lineHeight} !important; }`;
     })
     .join("\n");
 
-  return `body { font-family: '${theme.fonts.body}', sans-serif; font-size: ${theme.baseFontSize}; }
+  return `body { font-family: '${theme.fonts.body}', sans-serif !important; font-size: ${theme.baseFontSize} !important; }
 ${headingRules}`;
 }
 

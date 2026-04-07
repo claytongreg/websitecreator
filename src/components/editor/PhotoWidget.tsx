@@ -28,7 +28,7 @@ export function PhotoWidget({ siteId }: Props) {
   const [lastCost, setLastCost] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { html, selectedElement, pushAction, addCost, setPhotoWidgetOpen } =
+  const { html, selectedElement, pushAction, addEdit, setPhotoWidgetOpen } =
     useEditorStore();
 
   const handleGenerate = async () => {
@@ -58,8 +58,13 @@ export function PhotoWidget({ siteId }: Props) {
       setGeneratedImage(data.imageUrl);
       setLastCost(data.costCents);
 
-      if (data.costCents) {
-        addCost(data.costCents);
+      if (data.costCents != null) {
+        addEdit({
+          action: "generate_image",
+          model,
+          costCents: data.costCents,
+          timestamp: Date.now(),
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Generation failed");

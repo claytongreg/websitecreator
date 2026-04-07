@@ -83,7 +83,10 @@ export default function NewSitePage() {
         });
         const data = await resp.json();
         if (data.site?.id) {
-          router.push(`/editor/${data.site.id}/index`);
+          const params = data.costCents
+            ? `?generationCost=${data.costCents}&generationModel=${encodeURIComponent(selectedModel)}`
+            : "";
+          router.push(`/editor/${data.site.id}/index${params}`);
         }
       } catch (err) {
         console.error("Failed to create site:", err);

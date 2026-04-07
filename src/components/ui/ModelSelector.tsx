@@ -13,7 +13,8 @@ export interface ModelOption {
   name: string;
   provider: string;
   tier: "free" | "budget" | "standard" | "premium";
-  costPer: string;
+  inputCostPer1k: number;  // cents per 1K input tokens (matches provider files)
+  outputCostPer1k: number; // cents per 1K output tokens (matches provider files)
 }
 
 export interface ImageModelOption {
@@ -23,22 +24,50 @@ export interface ImageModelOption {
   costPerImage: string; // display price after markup e.g. "$0.03"
 }
 
+// 200% markup on all API costs (3x base cost) — must match provider.ts
+const MARKUP_MULTIPLIER = 3;
+// Rough token estimates per page for site generation — must match /api/sites
+const INPUT_TOKENS_PER_PAGE = 800;
+const OUTPUT_TOKENS_PER_PAGE = 2000;
+// Rough token estimates for a single AI edit (system prompt + full page HTML in, full HTML out)
+const INPUT_TOKENS_PER_EDIT = 4000;
+const OUTPUT_TOKENS_PER_EDIT = 3000;
+
+/** Compute cost in cents for a single operation with this model (after markup) */
+function costForTokens(m: ModelOption, inputTokens: number, outputTokens: number): number {
+  return (
+    ((inputTokens / 1000) * m.inputCostPer1k +
+      (outputTokens / 1000) * m.outputCostPer1k) *
+    MARKUP_MULTIPLIER
+  );
+}
+
+/** Cost in cents for generating one page during site creation */
+function costPerPage(m: ModelOption): number {
+  return costForTokens(m, INPUT_TOKENS_PER_PAGE, OUTPUT_TOKENS_PER_PAGE);
+}
+
+/** Cost in cents for a single AI edit in the editor */
+function costPerEdit(m: ModelOption): number {
+  return costForTokens(m, INPUT_TOKENS_PER_EDIT, OUTPUT_TOKENS_PER_EDIT);
+}
+
 export const MODELS: ModelOption[] = [
   // Free (text)
-  { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B", provider: "Groq", tier: "free", costPer: "Free" },
-  { id: "qwen-qwq-32b", name: "Qwen QwQ 32B", provider: "Groq", tier: "free", costPer: "Free" },
-  { id: "gemma2-9b-it", name: "Gemma 2 9B", provider: "Groq", tier: "free", costPer: "Free" },
-  { id: "mistral-small-latest", name: "Mistral Small", provider: "Mistral", tier: "free", costPer: "Free" },
-  { id: "codestral-latest", name: "Codestral", provider: "Mistral", tier: "free", costPer: "Free" },
-  // Budget (text)
-  { id: "gpt-4o-mini", name: "GPT-4o Mini", provider: "OpenAI", tier: "budget", costPer: "$0.003" },
-  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", provider: "Google", tier: "budget", costPer: "$0.003" },
-  { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5", provider: "Anthropic", tier: "budget", costPer: "$0.006" },
+  { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B", provider: "Groq", tier: "free", inputCostPer1k: 0, outputCostPer1k: 0 },
+  { id: "qwen-qwq-32b", name: "Qwen QwQ 32B", provider: "Groq", tier: "free", inputCostPer1k: 0, outputCostPer1k: 0 },
+  { id: "gemma2-9b-it", name: "Gemma 2 9B", provider: "Groq", tier: "free", inputCostPer1k: 0, outputCostPer1k: 0 },
+  { id: "mistral-small-latest", name: "Mistral Small", provider: "Mistral", tier: "free", inputCostPer1k: 0, outputCostPer1k: 0 },
+  { id: "codestral-latest", name: "Codestral", provider: "Mistral", tier: "free", inputCostPer1k: 0, outputCostPer1k: 0 },
+  // Budget (text) — rates from src/lib/ai/*.ts
+  { id: "gpt-4o-mini", name: "GPT-4o Mini", provider: "OpenAI", tier: "budget", inputCostPer1k: 0.015, outputCostPer1k: 0.06 },
+  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", provider: "Google", tier: "budget", inputCostPer1k: 0.01, outputCostPer1k: 0.04 },
+  { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5", provider: "Anthropic", tier: "budget", inputCostPer1k: 0.08, outputCostPer1k: 0.4 },
   // Standard
-  { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI", tier: "standard", costPer: "$0.015" },
-  { id: "gemini-2.0-pro", name: "Gemini 2.0 Pro", provider: "Google", tier: "standard", costPer: "$0.012" },
+  { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI", tier: "standard", inputCostPer1k: 0.25, outputCostPer1k: 1.0 },
+  { id: "gemini-2.0-pro", name: "Gemini 2.0 Pro", provider: "Google", tier: "standard", inputCostPer1k: 0.125, outputCostPer1k: 0.5 },
   // Premium
-  { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "Anthropic", tier: "premium", costPer: "$0.024" },
+  { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "Anthropic", tier: "premium", inputCostPer1k: 0.3, outputCostPer1k: 1.5 },
 ];
 
 const TIER_LABELS: Record<string, string> = {
@@ -58,21 +87,21 @@ interface ModelSelectorProps {
   className?: string;
 }
 
-/** Parse the numeric cost from a costPer string like "$0.003" */
-function parseCost(costPer: string): number {
-  if (costPer === "Free") return 0;
-  return parseFloat(costPer.replace("$", "")) || 0;
+/** Format cost in cents as a dollar string, or "Free" if zero */
+function formatCost(cents: number, suffix?: string): string {
+  if (cents === 0) return "Free";
+  return `~$${(cents / 100).toFixed(3)}${suffix ?? ""}`;
 }
 
 export function ModelSelector({ value, onChange, pageCount, className }: ModelSelectorProps) {
   const selected = MODELS.find((m) => m.id === value);
 
+  // When pageCount is provided (onboarding), show total cost for all pages
+  // Otherwise (editor), show per-edit cost with "/edit" suffix
   const costLabel = selected
     ? pageCount != null
-      ? selected.costPer === "Free"
-        ? "Free"
-        : `~$${(parseCost(selected.costPer) * pageCount).toFixed(3)}`
-      : selected.costPer
+      ? formatCost(costPerPage(selected) * pageCount)
+      : formatCost(costPerEdit(selected), "/edit")
     : "";
 
   return (
@@ -110,10 +139,8 @@ export function ModelSelector({ value, onChange, pageCount, className }: ModelSe
                       </div>
                       <span className="text-xs font-mono text-muted-foreground shrink-0">
                         {pageCount != null
-                          ? m.costPer === "Free"
-                            ? "Free"
-                            : `~$${(parseCost(m.costPer) * pageCount).toFixed(3)}`
-                          : `${m.costPer}/edit`}
+                          ? formatCost(costPerPage(m) * pageCount)
+                          : formatCost(costPerEdit(m), "/edit")}
                       </span>
                     </div>
                   </SelectItem>
