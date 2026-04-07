@@ -2,6 +2,8 @@
 import "./openai";
 import "./anthropic";
 import "./gemini";
+import "./groq";
+import "./mistral";
 
 // Re-export the provider API
 export {
