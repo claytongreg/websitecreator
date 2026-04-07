@@ -368,12 +368,19 @@ export function EditorCanvas({ iframeRef }: EditorCanvasProps) {
   // When html changes, rewrite the full iframe
   const updateIframeHtml = useCallback(() => {
     const iframe = iframeRef.current;
-    if (!iframe) return;
+    if (!iframe || !html) return;
 
-    const htmlWithScript = html.replace(
-      "</body>",
-      `<script>${IFRAME_SCRIPT}</script></body>`
-    );
+    const scriptTag = `<script>${IFRAME_SCRIPT}</script>`;
+    let htmlWithScript: string;
+
+    // Try to inject before </body>, falling back to </html>, or just append
+    if (html.match(/<\/body>/i)) {
+      htmlWithScript = html.replace(/<\/body>/i, `${scriptTag}</body>`);
+    } else if (html.match(/<\/html>/i)) {
+      htmlWithScript = html.replace(/<\/html>/i, `${scriptTag}</html>`);
+    } else {
+      htmlWithScript = html + scriptTag;
+    }
 
     const doc = iframe.contentDocument;
     if (doc) {

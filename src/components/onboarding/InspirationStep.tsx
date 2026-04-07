@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { X, Loader2, Link as LinkIcon } from "lucide-react";
+import { X, Loader2, Link as LinkIcon, AlertTriangle } from "lucide-react";
 import type { InspirationSite } from "@/types";
 
 interface Props {
@@ -13,15 +13,32 @@ interface Props {
   onRemove: (url: string) => void;
 }
 
+function isValidUrl(input: string): boolean {
+  try {
+    const withProtocol = input.startsWith("http") ? input : `https://${input}`;
+    const parsed = new URL(withProtocol);
+    // Must have a dot in hostname (not just "localhost" etc.)
+    return parsed.hostname.includes(".") && parsed.hostname.length > 3;
+  } catch {
+    return false;
+  }
+}
+
 export function InspirationStep({ inspirations, onAdd, onRemove }: Props) {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleAdd = async () => {
-    if (!url.trim()) return;
+    const trimmed = url.trim();
+    if (!trimmed) return;
 
-    let normalizedUrl = url.trim();
+    if (!isValidUrl(trimmed)) {
+      setError("Please enter a valid website URL (e.g. example.com)");
+      return;
+    }
+
+    let normalizedUrl = trimmed;
     if (!normalizedUrl.startsWith("http")) {
       normalizedUrl = `https://${normalizedUrl}`;
     }
@@ -42,26 +59,25 @@ export function InspirationStep({ inspirations, onAdd, onRemove }: Props) {
         body: JSON.stringify({ url: normalizedUrl }),
       });
 
-      if (!resp.ok) throw new Error("Failed to extract styles");
-
       const data = await resp.json();
+
+      if (!resp.ok) {
+        setError(data.error || "Failed to extract styles");
+        return;
+      }
+
+      if (data.error && data.fallback) {
+        // API returned fallback styles with a warning
+        setError(data.error + " Using approximate styles.");
+      }
+
       onAdd({
         url: normalizedUrl,
         style: data.style,
       });
       setUrl("");
     } catch {
-      // Fallback: add with placeholder style
-      onAdd({
-        url: normalizedUrl,
-        style: {
-          colors: ["#000000", "#ffffff", "#666666"],
-          fonts: [{ family: "System default" }],
-          layout: "Unknown",
-          mood: "To be analyzed",
-        },
-      });
-      setUrl("");
+      setError("Network error — check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -76,11 +92,14 @@ export function InspirationStep({ inspirations, onAdd, onRemove }: Props) {
         can skip it and describe your vision in the next step.
       </p>
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-2">
         <Input
           placeholder="https://example.com"
           value={url}
-          onChange={(e) => setUrl(e.target.value)}
+          onChange={(e) => {
+            setUrl(e.target.value);
+            if (error) setError("");
+          }}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
           disabled={loading}
         />
@@ -93,7 +112,13 @@ export function InspirationStep({ inspirations, onAdd, onRemove }: Props) {
         </Button>
       </div>
 
-      {error && <p className="text-sm text-destructive mb-4">{error}</p>}
+      {error && (
+        <div className="flex items-center gap-1.5 text-sm text-amber-600 mb-4">
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+      {!error && <div className="mb-4" />}
 
       <div className="space-y-3">
         {inspirations.map((site) => (
