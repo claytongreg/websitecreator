@@ -1,0 +1,164 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { EditorCanvas } from "@/components/editor/EditorCanvas";
+import { SelectionToolbar } from "@/components/editor/SelectionToolbar";
+import { AIPromptBar } from "@/components/editor/AIPromptBar";
+import { PageTree } from "@/components/editor/PageTree";
+import { useEditorStore } from "@/lib/editor/store";
+import { ArrowLeft, Save, Eye, Code } from "lucide-react";
+import { toast } from "sonner";
+
+interface SiteData {
+  id: string;
+  name: string;
+  subdomain: string;
+  pages: { slug: string; title: string; html: string; css: string | null }[];
+}
+
+export default function EditorPage() {
+  const params = useParams<{ siteId: string; pageSlug: string }>();
+  const { siteId, pageSlug } = params;
+  const [site, setSite] = useState<SiteData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showCode, setShowCode] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const { html, setHtml, setCss, selectedElement } = useEditorStore();
+  const codeRef = useRef<HTMLTextAreaElement>(null);
+
+  // Fetch site data
+  useEffect(() => {
+    fetch(`/api/sites?id=${siteId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setSite(data.site);
+        const page = data.site?.pages?.find(
+          (p: { slug: string }) => p.slug === pageSlug
+        );
+        if (page) {
+          setHtml(page.html);
+          setCss(page.css ?? "");
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [siteId, pageSlug, setHtml, setCss]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await fetch("/api/pages", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteId, slug: pageSlug, html }),
+      });
+      toast.success("Page saved");
+    } catch {
+      toast.error("Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAiEditFocus = () => {
+    // Focus the AI prompt bar input
+    const input = document.querySelector<HTMLInputElement>(
+      '[placeholder*="Edit"], [placeholder*="Describe"]'
+    );
+    input?.focus();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-muted-foreground">
+        Loading editor...
+      </div>
+    );
+  }
+
+  if (!site) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">Site not found</p>
+          <Link href="/dashboard" className={buttonVariants()}>
+            Back to Dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen flex flex-col">
+      {/* Top toolbar */}
+      <header className="border-b px-4 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard"
+            className={buttonVariants({ variant: "ghost", size: "sm" })}
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <span className="font-medium text-sm">{site.name}</span>
+          <span className="text-xs text-muted-foreground">
+            / {pageSlug}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowCode(!showCode)}
+          >
+            <Code className="w-4 h-4 mr-1" />
+            {showCode ? "Visual" : "Code"}
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Eye className="w-4 h-4 mr-1" />
+            Preview
+          </Button>
+          <Button size="sm" onClick={handleSave} disabled={saving}>
+            <Save className="w-4 h-4 mr-1" />
+            {saving ? "Saving..." : "Save"}
+          </Button>
+        </div>
+      </header>
+
+      {/* Selection toolbar (shows when element selected) */}
+      {selectedElement && <SelectionToolbar onAiEdit={handleAiEditFocus} />}
+
+      {/* Main editor area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Page tree sidebar */}
+        <PageTree
+          siteId={siteId}
+          pages={site.pages.map((p) => ({ slug: p.slug, title: p.title }))}
+          currentSlug={pageSlug}
+          siteName={site.name}
+        />
+
+        {/* Canvas or code editor */}
+        {showCode ? (
+          <div className="flex-1 p-4">
+            <textarea
+              ref={codeRef}
+              className="w-full h-full font-mono text-sm p-4 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+              value={html}
+              onChange={(e) => setHtml(e.target.value)}
+              spellCheck={false}
+            />
+          </div>
+        ) : (
+          <EditorCanvas />
+        )}
+      </div>
+
+      {/* AI Prompt Bar */}
+      <AIPromptBar siteId={siteId} pageSlug={pageSlug} />
+    </div>
+  );
+}
