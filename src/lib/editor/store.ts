@@ -1,10 +1,17 @@
 import { create } from "zustand";
-import type { ElementSelection, EditorAction } from "@/types";
+import type { ElementSelection, EditorAction, ThemeSettings, HeadingStyle } from "@/types";
+import { DEFAULT_THEME } from "./theme-css";
+
+type HeadingLevel = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
 interface EditorState {
   // Current page HTML
   html: string;
   css: string;
+
+  // Theme
+  theme: ThemeSettings;
+  showThemePanel: boolean;
 
   // Selection
   selectedElement: ElementSelection | null;
@@ -18,9 +25,17 @@ interface EditorState {
   aiStreamContent: string;
   sessionCostCents: number;
 
+  // Photo widget
+  isPhotoWidgetOpen: boolean;
+
   // Actions
   setHtml: (html: string) => void;
   setCss: (css: string) => void;
+  setTheme: (theme: ThemeSettings) => void;
+  setThemeFont: (type: "heading" | "body", font: string) => void;
+  setHeadingStyle: (level: HeadingLevel, style: Partial<HeadingStyle>) => void;
+  setBaseFontSize: (size: string) => void;
+  setShowThemePanel: (show: boolean) => void;
   selectElement: (element: ElementSelection | null) => void;
   updateSelectionRect: (rect: { x: number; y: number; width: number; height: number }) => void;
   pushAction: (action: EditorAction) => void;
@@ -31,20 +46,42 @@ interface EditorState {
   setAiLoading: (loading: boolean) => void;
   setAiStreamContent: (content: string) => void;
   addCost: (cents: number) => void;
+  setPhotoWidgetOpen: (open: boolean) => void;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
   html: "",
   css: "",
+  theme: DEFAULT_THEME,
+  showThemePanel: false,
   selectedElement: null,
   history: [],
   historyIndex: -1,
   isAiLoading: false,
   aiStreamContent: "",
   sessionCostCents: 0,
+  isPhotoWidgetOpen: false,
 
   setHtml: (html) => set({ html }),
   setCss: (css) => set({ css }),
+  setTheme: (theme) => set({ theme }),
+  setThemeFont: (type, font) =>
+    set((s) => ({
+      theme: { ...s.theme, fonts: { ...s.theme.fonts, [type]: font } },
+    })),
+  setHeadingStyle: (level, style) =>
+    set((s) => ({
+      theme: {
+        ...s.theme,
+        headingSizes: {
+          ...s.theme.headingSizes,
+          [level]: { ...s.theme.headingSizes[level], ...style },
+        },
+      },
+    })),
+  setBaseFontSize: (size) =>
+    set((s) => ({ theme: { ...s.theme, baseFontSize: size } })),
+  setShowThemePanel: (show) => set({ showThemePanel: show }),
   selectElement: (element) => set({ selectedElement: element }),
   updateSelectionRect: (rect) => {
     const { selectedElement } = get();
@@ -86,4 +123,5 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setAiStreamContent: (content) => set({ aiStreamContent: content }),
   addCost: (cents) =>
     set((s) => ({ sessionCostCents: s.sessionCostCents + cents })),
+  setPhotoWidgetOpen: (open) => set({ isPhotoWidgetOpen: open }),
 }));

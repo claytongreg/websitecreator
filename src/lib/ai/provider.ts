@@ -57,6 +57,16 @@ export async function* generateText(
   yield* provider.generateText(prompt, options);
 }
 
+export function getImageModels(): AIModel[] {
+  return getAllModels().filter((m) => m.capabilities.includes("image"));
+}
+
+export function estimateImageCost(modelId: string): number {
+  const model = getModel(modelId);
+  if (!model?.imageCostCents) return 0;
+  return model.imageCostCents * MARKUP_MULTIPLIER;
+}
+
 export async function generateImage(
   prompt: string,
   options: ImageOptions

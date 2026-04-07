@@ -11,6 +11,7 @@ export interface AIModel {
   capabilities: ("text" | "code" | "image")[];
   inputCostPer1k: number; // cost per 1K input tokens in cents
   outputCostPer1k: number; // cost per 1K output tokens in cents
+  imageCostCents?: number; // flat cost per image generation in cents (for image models)
   maxTokens: number;
 }
 
@@ -104,6 +105,27 @@ export interface EditorAction {
   before: string; // HTML before change
   after: string; // HTML after change
   timestamp: number;
+}
+
+// --- Theme ---
+
+export interface HeadingStyle {
+  size: string;
+  weight: string;
+  lineHeight: string;
+}
+
+export interface ThemeSettings {
+  fonts: { heading: string; body: string };
+  headingSizes: {
+    h1: HeadingStyle;
+    h2: HeadingStyle;
+    h3: HeadingStyle;
+    h4: HeadingStyle;
+    h5: HeadingStyle;
+    h6: HeadingStyle;
+  };
+  baseFontSize: string;
 }
 
 // --- Billing ---

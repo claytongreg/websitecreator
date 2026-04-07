@@ -4,6 +4,8 @@ import "./anthropic";
 import "./gemini";
 import "./groq";
 import "./mistral";
+import "./deepseek";
+import "./grok";
 
 // Re-export the provider API
 export {
@@ -15,4 +17,6 @@ export {
   estimateCost,
   generateText,
   generateImage,
+  getImageModels,
+  estimateImageCost,
 } from "./provider";

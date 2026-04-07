@@ -1,8 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import type { AIProvider, GenerateOptions, ImageOptions } from "@/types";
 import { registerProvider } from "./provider";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY ?? "" });
 
 const geminiProvider: AIProvider = {
   id: "gemini",
@@ -21,52 +21,87 @@ const geminiProvider: AIProvider = {
       id: "gemini-2.0-pro",
       name: "Gemini 2.0 Pro",
       provider: "gemini",
-      capabilities: ["text", "code", "image"],
+      capabilities: ["text", "code"],
       inputCostPer1k: 0.125,
       outputCostPer1k: 0.5,
       maxTokens: 8192,
     },
+    {
+      id: "imagen-4.0-generate-001",
+      name: "Imagen 4.0",
+      provider: "gemini",
+      capabilities: ["image"],
+      inputCostPer1k: 0,
+      outputCostPer1k: 0,
+      imageCostCents: 4,
+      maxTokens: 0,
+    },
+    {
+      id: "gemini-2.5-flash-image",
+      name: "Gemini 2.5 Flash Image",
+      provider: "gemini",
+      capabilities: ["image"],
+      inputCostPer1k: 0,
+      outputCostPer1k: 0,
+      imageCostCents: 1,
+      maxTokens: 0,
+    },
   ],
 
   async *generateText(prompt: string, options: GenerateOptions) {
-    const model = genAI.getGenerativeModel({ model: options.model });
-    const result = await model.generateContentStream({
+    const response = await ai.models.generateContentStream({
+      model: options.model,
       contents: [
         ...(options.systemPrompt
           ? [{ role: "model" as const, parts: [{ text: options.systemPrompt }] }]
           : []),
         { role: "user" as const, parts: [{ text: prompt }] },
       ],
-      generationConfig: {
+      config: {
         temperature: options.temperature ?? 0.7,
         maxOutputTokens: options.maxTokens ?? 4096,
       },
     });
 
-    for await (const chunk of result.stream) {
-      const text = chunk.text();
+    for await (const chunk of response) {
+      const text = chunk.text;
       if (text) yield text;
     }
   },
 
-  async generateImage(prompt: string, _options: ImageOptions) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        // @ts-expect-error — responseModalities is available in newer Gemini models
-        responseModalities: ["image", "text"],
+  async generateImage(prompt: string, options: ImageOptions) {
+    // Primary: Imagen 4.0
+    if (options.model === "imagen-4.0-generate-001") {
+      const response = await ai.models.generateImages({
+        model: "imagen-4.0-generate-001",
+        prompt,
+        config: {
+          numberOfImages: 1,
+        },
+      });
+      const image = response.generatedImages?.[0];
+      if (image?.image?.imageBytes) {
+        return `data:image/png;base64,${image.image.imageBytes}`;
+      }
+      throw new Error("No image generated from Imagen 4.0");
+    }
+
+    // Fallback: Gemini 2.5 Flash Image via generateContent
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-image",
+      contents: prompt,
+      config: {
+        responseModalities: ["IMAGE", "TEXT"],
       },
     });
 
-    const parts = result.response.candidates?.[0]?.content?.parts ?? [];
+    const parts = response.candidates?.[0]?.content?.parts ?? [];
     for (const part of parts) {
-      const inlineData = (part as { inlineData?: { data: string } }).inlineData;
-      if (inlineData) {
-        return `data:image/png;base64,${inlineData.data}`;
+      if (part.inlineData) {
+        return `data:image/png;base64,${part.inlineData.data}`;
       }
     }
-    throw new Error("No image generated");
+    throw new Error("No image generated from Gemini Flash");
   },
 };
 

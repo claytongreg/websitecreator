@@ -165,6 +165,25 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ site });
 }
 
+// PATCH /api/sites — update site settings (e.g. themeSettings)
+export async function PATCH(req: NextRequest) {
+  const { id, themeSettings } = await req.json();
+
+  if (!id) {
+    return NextResponse.json({ error: "Site id required" }, { status: 400 });
+  }
+
+  const updated = await db.site.update({
+    where: { id },
+    data: {
+      ...(themeSettings !== undefined ? { themeSettings } : {}),
+      updatedAt: new Date(),
+    },
+  });
+
+  return NextResponse.json({ site: updated });
+}
+
 // ---------------------------------------------------------------------------
 // AI page generation
 // ---------------------------------------------------------------------------

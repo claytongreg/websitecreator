@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback } from "react";
 import { useEditorStore } from "@/lib/editor/store";
+import { generateThemeCss } from "@/lib/editor/theme-css";
 import type { ElementSelection } from "@/types";
 
 interface EditorCanvasProps {
@@ -38,6 +39,28 @@ const IFRAME_SCRIPT = `
       current = current.parentElement;
     }
     return parts.join(' > ');
+  }
+
+  // Get clean HTML without injected overlays/script
+  function getCleanHTML() {
+    var ov = document.getElementById('__wc_overlay');
+    var sel = document.getElementById('__wc_selected');
+    if (ov) ov.remove();
+    if (sel) sel.remove();
+    // Remove injected script(s) — they contain our IIFE marker
+    var scripts = document.querySelectorAll('script');
+    var toRemove = [];
+    scripts.forEach(function(s) {
+      if (s.textContent && s.textContent.indexOf('__wc_selectedEl') !== -1) {
+        toRemove.push(s);
+      }
+    });
+    toRemove.forEach(function(s) { s.remove(); });
+    var html = '<!DOCTYPE html>\\n' + document.documentElement.outerHTML;
+    // Re-add overlays for continued editing
+    document.body.appendChild(overlay);
+    document.body.appendChild(selectedOverlay);
+    return html;
   }
 
   // Get computed styles for an element
@@ -133,6 +156,18 @@ const IFRAME_SCRIPT = `
     window.parent.postMessage({ type: 'wc_select', selection: selection }, '*');
   }, true);
 
+  // Check if an element is editable (contains some text content)
+  function isTextEditable(el) {
+    var tag = el.tagName.toLowerCase();
+    var textTags = ['h1','h2','h3','h4','h5','h6','p','span','a','li','label','blockquote','figcaption','cite','td','th','dt','dd','button','caption','legend','summary'];
+    if (textTags.indexOf(tag) !== -1) return true;
+    // Also allow if element has direct text content
+    for (var i = 0; i < el.childNodes.length; i++) {
+      if (el.childNodes[i].nodeType === 3 && el.childNodes[i].textContent.trim()) return true;
+    }
+    return false;
+  }
+
   // Double-click to edit text inline
   document.addEventListener('dblclick', function(e) {
     e.preventDefault();
@@ -141,20 +176,26 @@ const IFRAME_SCRIPT = `
     var el = document.elementFromPoint(e.clientX, e.clientY);
     if (!el || el.id === '__wc_overlay' || el.id === '__wc_selected') return;
 
-    // Only allow inline editing for text elements
-    if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+    // Allow inline editing for text-containing elements
+    if (isTextEditable(el)) {
       el.contentEditable = 'true';
       el.focus();
+      // Select all text
+      var range = document.createRange();
+      range.selectNodeContents(el);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
 
       var onBlur = function() {
         el.contentEditable = 'false';
         el.removeEventListener('blur', onBlur);
-        // Notify parent of the change
+        // Notify parent of the change with clean HTML
         window.parent.postMessage({
           type: 'wc_text_edit',
           path: getElementPath(el),
           newText: el.textContent,
-          newHTML: document.documentElement.outerHTML,
+          newHTML: getCleanHTML(),
         }, '*');
       };
       el.addEventListener('blur', onBlur);
@@ -201,7 +242,7 @@ const IFRAME_SCRIPT = `
           type: 'wc_text_edit',
           path: getElementPath(target),
           newText: target.textContent,
-          newHTML: document.documentElement.outerHTML,
+          newHTML: getCleanHTML(),
         }, '*');
       };
       target.addEventListener('blur', onBlur);
@@ -214,7 +255,7 @@ const IFRAME_SCRIPT = `
         sendSelectionRect();
         window.parent.postMessage({
           type: 'wc_html_changed',
-          newHTML: '<!DOCTYPE html>\\n' + document.documentElement.outerHTML,
+          newHTML: getCleanHTML(),
           movedPath: getElementPath(__wc_selectedEl),
         }, '*');
       }
@@ -227,7 +268,7 @@ const IFRAME_SCRIPT = `
         sendSelectionRect();
         window.parent.postMessage({
           type: 'wc_html_changed',
-          newHTML: '<!DOCTYPE html>\\n' + document.documentElement.outerHTML,
+          newHTML: getCleanHTML(),
           movedPath: getElementPath(__wc_selectedEl),
         }, '*');
       }
@@ -240,7 +281,7 @@ const IFRAME_SCRIPT = `
 `;
 
 export function EditorCanvas({ iframeRef }: EditorCanvasProps) {
-  const { html, setHtml, selectElement, updateSelectionRect, pushAction } =
+  const { html, setHtml, theme, selectElement, updateSelectionRect, pushAction } =
     useEditorStore();
 
   // Listen for messages from iframe
@@ -250,10 +291,18 @@ export function EditorCanvas({ iframeRef }: EditorCanvasProps) {
         selectElement(e.data.selection as ElementSelection);
       }
       if (e.data.type === "wc_text_edit") {
-        setHtml(e.data.newHTML);
+        const before = useEditorStore.getState().html;
+        pushAction({
+          type: "edit",
+          elementPath: e.data.path ?? "document",
+          before,
+          after: e.data.newHTML,
+          timestamp: Date.now(),
+        });
       }
       if (e.data.type === "wc_ready") {
-        updateIframeHtml();
+        // Initial load only — apply theme CSS in-place
+        updateThemeInIframe();
       }
       if (e.data.type === "wc_selection_moved") {
         updateSelectionRect(e.data.boundingRect);
@@ -278,12 +327,49 @@ export function EditorCanvas({ iframeRef }: EditorCanvasProps) {
     return () => window.removeEventListener("message", handleMessage);
   }, [handleMessage]);
 
-  // When html changes in store, update iframe
+  // Update only the theme <style> tag inside the existing iframe (no full rewrite)
+  const updateThemeInIframe = useCallback(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    const doc = iframe.contentDocument;
+    if (!doc) return;
+
+    const currentTheme = useEditorStore.getState().theme;
+    const themeCss = generateThemeCss(currentTheme);
+
+    // Insert or replace theme style element
+    let styleEl = doc.getElementById("wc-theme");
+    if (!styleEl) {
+      styleEl = doc.createElement("style");
+      styleEl.id = "wc-theme";
+      (doc.head || doc.documentElement).appendChild(styleEl);
+    }
+    styleEl.textContent = themeCss;
+
+    // Also load Google Fonts via a link tag if not already present
+    const fonts = new Set([currentTheme.fonts.heading, currentTheme.fonts.body]);
+    const families = Array.from(fonts)
+      .map((f) => `family=${f.replace(/ /g, "+")}:wght@300;400;500;600;700;800;900`)
+      .join("&");
+    const fontsUrl = `https://fonts.googleapis.com/css2?${families}&display=swap`;
+
+    let linkEl = doc.getElementById("wc-theme-fonts") as HTMLLinkElement | null;
+    if (!linkEl) {
+      linkEl = doc.createElement("link");
+      linkEl.id = "wc-theme-fonts";
+      linkEl.rel = "stylesheet";
+      (doc.head || doc.documentElement).appendChild(linkEl);
+    }
+    if (linkEl.href !== fontsUrl) {
+      linkEl.href = fontsUrl;
+    }
+  }, [iframeRef]);
+
+  // When html changes, rewrite the full iframe
   const updateIframeHtml = useCallback(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
-    // Inject our interaction script into the HTML
     const htmlWithScript = html.replace(
       "</body>",
       `<script>${IFRAME_SCRIPT}</script></body>`
@@ -297,9 +383,15 @@ export function EditorCanvas({ iframeRef }: EditorCanvasProps) {
     }
   }, [html, iframeRef]);
 
+  // Rewrite iframe when html changes
   useEffect(() => {
     updateIframeHtml();
   }, [updateIframeHtml]);
+
+  // Apply theme in-place when theme changes (no iframe rewrite)
+  useEffect(() => {
+    updateThemeInIframe();
+  }, [theme, updateThemeInIframe]);
 
   // Click outside iframe to deselect
   const handleContainerClick = () => {

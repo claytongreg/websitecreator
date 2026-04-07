@@ -9,13 +9,17 @@ import { FloatingToolbar } from "@/components/editor/FloatingToolbar";
 import { AIPromptBar } from "@/components/editor/AIPromptBar";
 import { PageTree } from "@/components/editor/PageTree";
 import { useEditorStore } from "@/lib/editor/store";
-import { ArrowLeft, Save, Eye, Code } from "lucide-react";
+import { ThemePanel } from "@/components/editor/ThemePanel";
+import { generateThemeCss, DEFAULT_THEME } from "@/lib/editor/theme-css";
+import type { ThemeSettings } from "@/types";
+import { ArrowLeft, Save, Eye, Code, Palette } from "lucide-react";
 import { toast } from "sonner";
 
 interface SiteData {
   id: string;
   name: string;
   subdomain: string;
+  themeSettings: ThemeSettings | null;
   pages: { slug: string; title: string; html: string; css: string | null }[];
 }
 
@@ -26,7 +30,7 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [showCode, setShowCode] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { html, setHtml, setCss } = useEditorStore();
+  const { html, setHtml, setCss, theme, setTheme, showThemePanel, setShowThemePanel } = useEditorStore();
   const codeRef = useRef<HTMLTextAreaElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -36,6 +40,9 @@ export default function EditorPage() {
       .then((r) => r.json())
       .then((data) => {
         setSite(data.site);
+        if (data.site?.themeSettings) {
+          setTheme(data.site.themeSettings as ThemeSettings);
+        }
         const page = data.site?.pages?.find(
           (p: { slug: string }) => p.slug === pageSlug
         );
@@ -51,11 +58,19 @@ export default function EditorPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await fetch("/api/pages", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteId, slug: pageSlug, html }),
-      });
+      const themeCss = generateThemeCss(theme);
+      await Promise.all([
+        fetch("/api/pages", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ siteId, slug: pageSlug, html, css: themeCss }),
+        }),
+        fetch("/api/sites", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: siteId, themeSettings: theme }),
+        }),
+      ]);
       toast.success("Page saved");
     } catch {
       toast.error("Failed to save");
@@ -110,6 +125,14 @@ export default function EditorPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button
+            variant={showThemePanel ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setShowThemePanel(!showThemePanel)}
+          >
+            <Palette className="w-4 h-4 mr-1" />
+            Theme
+          </Button>
+          <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowCode(!showCode)}
@@ -152,6 +175,8 @@ export default function EditorPage() {
         ) : (
           <EditorCanvas iframeRef={iframeRef} />
         )}
+
+        {showThemePanel && <ThemePanel />}
       </div>
 
       {/* Floating toolbar (positioned near selected element) */}
