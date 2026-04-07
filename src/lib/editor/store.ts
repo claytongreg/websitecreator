@@ -22,6 +22,7 @@ interface EditorState {
   setHtml: (html: string) => void;
   setCss: (css: string) => void;
   selectElement: (element: ElementSelection | null) => void;
+  updateSelectionRect: (rect: { x: number; y: number; width: number; height: number }) => void;
   pushAction: (action: EditorAction) => void;
   undo: () => void;
   redo: () => void;
@@ -45,6 +46,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setHtml: (html) => set({ html }),
   setCss: (css) => set({ css }),
   selectElement: (element) => set({ selectedElement: element }),
+  updateSelectionRect: (rect) => {
+    const { selectedElement } = get();
+    if (selectedElement) {
+      set({ selectedElement: { ...selectedElement, boundingRect: rect } });
+    }
+  },
 
   pushAction: (action) => {
     const { history, historyIndex } = get();

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { EditorCanvas } from "@/components/editor/EditorCanvas";
-import { SelectionToolbar } from "@/components/editor/SelectionToolbar";
+import { FloatingToolbar } from "@/components/editor/FloatingToolbar";
 import { AIPromptBar } from "@/components/editor/AIPromptBar";
 import { PageTree } from "@/components/editor/PageTree";
 import { useEditorStore } from "@/lib/editor/store";
@@ -26,8 +26,9 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [showCode, setShowCode] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { html, setHtml, setCss, selectedElement } = useEditorStore();
+  const { html, setHtml, setCss } = useEditorStore();
   const codeRef = useRef<HTMLTextAreaElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Fetch site data
   useEffect(() => {
@@ -64,7 +65,6 @@ export default function EditorPage() {
   };
 
   const handleAiEditFocus = () => {
-    // Focus the AI prompt bar input
     const input = document.querySelector<HTMLInputElement>(
       '[placeholder*="Edit"], [placeholder*="Describe"]'
     );
@@ -128,9 +128,6 @@ export default function EditorPage() {
         </div>
       </header>
 
-      {/* Selection toolbar (shows when element selected) */}
-      {selectedElement && <SelectionToolbar onAiEdit={handleAiEditFocus} />}
-
       {/* Main editor area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Page tree sidebar */}
@@ -153,9 +150,14 @@ export default function EditorPage() {
             />
           </div>
         ) : (
-          <EditorCanvas />
+          <EditorCanvas iframeRef={iframeRef} />
         )}
       </div>
+
+      {/* Floating toolbar (positioned near selected element) */}
+      {!showCode && (
+        <FloatingToolbar iframeRef={iframeRef} onAiEdit={handleAiEditFocus} />
+      )}
 
       {/* AI Prompt Bar */}
       <AIPromptBar siteId={siteId} pageSlug={pageSlug} />

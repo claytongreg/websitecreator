@@ -1,29 +1,36 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { useEditorStore } from "@/lib/editor/store";
 import type { ElementSelection } from "@/types";
+
+interface EditorCanvasProps {
+  iframeRef: React.RefObject<HTMLIFrameElement | null>;
+}
 
 // Script injected into the iframe to handle click interception
 const IFRAME_SCRIPT = `
 (function() {
+  // Currently selected DOM element (tracked for scroll updates & commands)
+  var __wc_selectedEl = null;
+
   // Build a unique CSS selector path for an element
   function getElementPath(el) {
     if (!el || el === document.body || el === document.documentElement) return 'body';
-    const parts = [];
-    let current = el;
+    var parts = [];
+    var current = el;
     while (current && current !== document.body) {
-      let selector = current.tagName.toLowerCase();
+      var selector = current.tagName.toLowerCase();
       if (current.id) {
         selector += '#' + current.id;
         parts.unshift(selector);
         break;
       }
-      const parent = current.parentElement;
+      var parent = current.parentElement;
       if (parent) {
-        const siblings = Array.from(parent.children).filter(c => c.tagName === current.tagName);
+        var siblings = Array.from(parent.children).filter(function(c) { return c.tagName === current.tagName; });
         if (siblings.length > 1) {
-          const index = siblings.indexOf(current) + 1;
+          var index = siblings.indexOf(current) + 1;
           selector += ':nth-of-type(' + index + ')';
         }
       }
@@ -35,7 +42,7 @@ const IFRAME_SCRIPT = `
 
   // Get computed styles for an element
   function getStyles(el) {
-    const computed = window.getComputedStyle(el);
+    var computed = window.getComputedStyle(el);
     return {
       color: computed.color,
       backgroundColor: computed.backgroundColor,
@@ -45,28 +52,44 @@ const IFRAME_SCRIPT = `
       padding: computed.padding,
       margin: computed.margin,
       textAlign: computed.textAlign,
+      backgroundImage: computed.backgroundImage,
     };
   }
 
-  // Highlight overlay
-  let overlay = document.createElement('div');
+  // Send updated bounding rect for the selected element
+  function sendSelectionRect() {
+    if (!__wc_selectedEl) return;
+    var rect = __wc_selectedEl.getBoundingClientRect();
+    selectedOverlay.style.top = rect.top + 'px';
+    selectedOverlay.style.left = rect.left + 'px';
+    selectedOverlay.style.width = rect.width + 'px';
+    selectedOverlay.style.height = rect.height + 'px';
+    window.parent.postMessage({
+      type: 'wc_selection_moved',
+      boundingRect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+    }, '*');
+  }
+
+  // Highlight overlay (hover)
+  var overlay = document.createElement('div');
   overlay.id = '__wc_overlay';
   overlay.style.cssText = 'position:fixed;pointer-events:none;border:2px solid #3b82f6;background:rgba(59,130,246,0.08);z-index:99999;transition:all 0.1s ease;display:none;';
   document.body.appendChild(overlay);
 
-  let selectedOverlay = document.createElement('div');
+  // Selected overlay (click)
+  var selectedOverlay = document.createElement('div');
   selectedOverlay.id = '__wc_selected';
-  selectedOverlay.style.cssText = 'position:fixed;pointer-events:none;border:2px solid #f97316;z-index:99998;display:none;';
+  selectedOverlay.style.cssText = 'position:fixed;pointer-events:none;border:2px solid #f97316;background:rgba(249,115,22,0.06);z-index:99998;display:none;';
   document.body.appendChild(selectedOverlay);
 
   // Hover effect
   document.addEventListener('mousemove', function(e) {
-    const el = document.elementFromPoint(e.clientX, e.clientY);
+    var el = document.elementFromPoint(e.clientX, e.clientY);
     if (!el || el.id === '__wc_overlay' || el.id === '__wc_selected' || el === document.body || el === document.documentElement) {
       overlay.style.display = 'none';
       return;
     }
-    const rect = el.getBoundingClientRect();
+    var rect = el.getBoundingClientRect();
     overlay.style.display = 'block';
     overlay.style.top = rect.top + 'px';
     overlay.style.left = rect.left + 'px';
@@ -79,10 +102,12 @@ const IFRAME_SCRIPT = `
     e.preventDefault();
     e.stopPropagation();
 
-    const el = document.elementFromPoint(e.clientX, e.clientY);
+    var el = document.elementFromPoint(e.clientX, e.clientY);
     if (!el || el.id === '__wc_overlay' || el.id === '__wc_selected' || el === document.body || el === document.documentElement) return;
 
-    const rect = el.getBoundingClientRect();
+    __wc_selectedEl = el;
+
+    var rect = el.getBoundingClientRect();
     selectedOverlay.style.display = 'block';
     selectedOverlay.style.top = rect.top + 'px';
     selectedOverlay.style.left = rect.left + 'px';
@@ -90,12 +115,12 @@ const IFRAME_SCRIPT = `
     selectedOverlay.style.height = rect.height + 'px';
 
     // Get attributes
-    const attrs = {};
-    for (let i = 0; i < el.attributes.length; i++) {
+    var attrs = {};
+    for (var i = 0; i < el.attributes.length; i++) {
       attrs[el.attributes[i].name] = el.attributes[i].value;
     }
 
-    const selection = {
+    var selection = {
       path: getElementPath(el),
       tagName: el.tagName.toLowerCase(),
       textContent: el.childNodes.length === 1 && el.childNodes[0].nodeType === 3 ? el.textContent : undefined,
@@ -113,7 +138,7 @@ const IFRAME_SCRIPT = `
     e.preventDefault();
     e.stopPropagation();
 
-    const el = document.elementFromPoint(e.clientX, e.clientY);
+    var el = document.elementFromPoint(e.clientX, e.clientY);
     if (!el || el.id === '__wc_overlay' || el.id === '__wc_selected') return;
 
     // Only allow inline editing for text elements
@@ -121,7 +146,7 @@ const IFRAME_SCRIPT = `
       el.contentEditable = 'true';
       el.focus();
 
-      const onBlur = function() {
+      var onBlur = function() {
         el.contentEditable = 'false';
         el.removeEventListener('blur', onBlur);
         // Notify parent of the change
@@ -136,16 +161,76 @@ const IFRAME_SCRIPT = `
     }
   }, true);
 
-  // Listen for HTML updates from parent
+  // Scroll tracking — update toolbar position
+  var scrollTimeout = null;
+  document.addEventListener('scroll', function() {
+    if (scrollTimeout) clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(sendSelectionRect, 30);
+  }, true);
+  window.addEventListener('resize', function() {
+    sendSelectionRect();
+  });
+
+  // Listen for messages from parent
   window.addEventListener('message', function(e) {
     if (e.data.type === 'wc_update_html') {
-      // Replace full document
       document.open();
       document.write(e.data.html);
       document.close();
     }
     if (e.data.type === 'wc_deselect') {
+      __wc_selectedEl = null;
       selectedOverlay.style.display = 'none';
+    }
+    // Trigger inline text editing from toolbar button
+    if (e.data.type === 'wc_trigger_edit' && __wc_selectedEl) {
+      var target = __wc_selectedEl;
+      target.contentEditable = 'true';
+      target.focus();
+      // Select all text
+      var range = document.createRange();
+      range.selectNodeContents(target);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      var onBlur = function() {
+        target.contentEditable = 'false';
+        target.removeEventListener('blur', onBlur);
+        window.parent.postMessage({
+          type: 'wc_text_edit',
+          path: getElementPath(target),
+          newText: target.textContent,
+          newHTML: document.documentElement.outerHTML,
+        }, '*');
+      };
+      target.addEventListener('blur', onBlur);
+    }
+    // Move element up
+    if (e.data.type === 'wc_move_up' && __wc_selectedEl) {
+      var prev = __wc_selectedEl.previousElementSibling;
+      if (prev) {
+        __wc_selectedEl.parentElement.insertBefore(__wc_selectedEl, prev);
+        sendSelectionRect();
+        window.parent.postMessage({
+          type: 'wc_html_changed',
+          newHTML: '<!DOCTYPE html>\\n' + document.documentElement.outerHTML,
+          movedPath: getElementPath(__wc_selectedEl),
+        }, '*');
+      }
+    }
+    // Move element down
+    if (e.data.type === 'wc_move_down' && __wc_selectedEl) {
+      var next = __wc_selectedEl.nextElementSibling;
+      if (next) {
+        __wc_selectedEl.parentElement.insertBefore(next, __wc_selectedEl);
+        sendSelectionRect();
+        window.parent.postMessage({
+          type: 'wc_html_changed',
+          newHTML: '<!DOCTYPE html>\\n' + document.documentElement.outerHTML,
+          movedPath: getElementPath(__wc_selectedEl),
+        }, '*');
+      }
     }
   });
 
@@ -154,9 +239,9 @@ const IFRAME_SCRIPT = `
 })();
 `;
 
-export function EditorCanvas() {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const { html, setHtml, selectElement } = useEditorStore();
+export function EditorCanvas({ iframeRef }: EditorCanvasProps) {
+  const { html, setHtml, selectElement, updateSelectionRect, pushAction } =
+    useEditorStore();
 
   // Listen for messages from iframe
   const handleMessage = useCallback(
@@ -168,12 +253,24 @@ export function EditorCanvas() {
         setHtml(e.data.newHTML);
       }
       if (e.data.type === "wc_ready") {
-        // Iframe loaded, inject current HTML
         updateIframeHtml();
+      }
+      if (e.data.type === "wc_selection_moved") {
+        updateSelectionRect(e.data.boundingRect);
+      }
+      if (e.data.type === "wc_html_changed") {
+        const before = useEditorStore.getState().html;
+        pushAction({
+          type: "edit",
+          elementPath: e.data.movedPath ?? "document",
+          before,
+          after: e.data.newHTML,
+          timestamp: Date.now(),
+        });
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectElement, setHtml]
+    [selectElement, setHtml, updateSelectionRect, pushAction]
   );
 
   useEffect(() => {
@@ -198,7 +295,7 @@ export function EditorCanvas() {
       doc.write(htmlWithScript);
       doc.close();
     }
-  }, [html]);
+  }, [html, iframeRef]);
 
   useEffect(() => {
     updateIframeHtml();
