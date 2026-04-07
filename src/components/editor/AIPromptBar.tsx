@@ -3,42 +3,9 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ModelSelector } from "@/components/ui/ModelSelector";
 import { useEditorStore } from "@/lib/editor/store";
 import { Loader2, Send, Undo2, Redo2 } from "lucide-react";
-
-// All available models with clear pricing
-// Prices shown include 200% markup (3x API cost). Free models = $0.
-const MODELS = [
-  // Free
-  { id: "llama-3.3-70b-versatile",    name: "Llama 3.3 70B",     provider: "Groq",      tier: "free",     costPer: "Free" },
-  { id: "qwen-qwq-32b",              name: "Qwen QwQ 32B",      provider: "Groq",      tier: "free",     costPer: "Free" },
-  { id: "gemma2-9b-it",              name: "Gemma 2 9B",        provider: "Groq",      tier: "free",     costPer: "Free" },
-  { id: "mistral-small-latest",      name: "Mistral Small",     provider: "Mistral",   tier: "free",     costPer: "Free" },
-  { id: "codestral-latest",          name: "Codestral",         provider: "Mistral",   tier: "free",     costPer: "Free" },
-  // Budget
-  { id: "gpt-4o-mini",                name: "GPT-4o Mini",       provider: "OpenAI",    tier: "budget",   costPer: "$0.003" },
-  { id: "gemini-2.0-flash",           name: "Gemini 2.0 Flash",  provider: "Google",    tier: "budget",   costPer: "$0.003" },
-  { id: "claude-haiku-4-5-20251001",  name: "Claude Haiku 4.5",  provider: "Anthropic", tier: "budget",   costPer: "$0.006" },
-  // Standard
-  { id: "gpt-4o",                     name: "GPT-4o",            provider: "OpenAI",    tier: "standard", costPer: "$0.015" },
-  { id: "gemini-2.0-pro",             name: "Gemini 2.0 Pro",    provider: "Google",    tier: "standard", costPer: "$0.012" },
-  // Premium
-  { id: "claude-sonnet-4-20250514",   name: "Claude Sonnet 4",   provider: "Anthropic", tier: "premium",  costPer: "$0.024" },
-];
-
-const TIER_LABELS: Record<string, string> = {
-  free: "Free",
-  budget: "Budget",
-  standard: "Standard",
-  premium: "Premium",
-};
 
 interface Props {
   siteId: string;
@@ -116,11 +83,6 @@ export function AIPromptBar({ siteId }: Props) {
     }
   };
 
-  const selectedModel = MODELS.find((m) => m.id === model);
-
-  // Group models by tier for the dropdown
-  const tiers = ["free", "budget", "standard", "premium"];
-
   return (
     <div className="border-t px-4 py-3 flex items-center gap-3">
       {/* Undo/Redo */}
@@ -146,48 +108,7 @@ export function AIPromptBar({ siteId }: Props) {
       </div>
 
       {/* Model picker with pricing */}
-      <Select value={model} onValueChange={(v) => v && setModel(v)}>
-        <SelectTrigger className="w-52">
-          <SelectValue>
-            {selectedModel && (
-              <span className="flex items-center gap-2">
-                <span className="truncate">{selectedModel.name}</span>
-                <span className="text-[10px] text-muted-foreground font-mono">
-                  {selectedModel.costPer}
-                </span>
-              </span>
-            )}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent className="w-72">
-          {tiers.map((tier) => {
-            const tierModels = MODELS.filter((m) => m.tier === tier);
-            if (tierModels.length === 0) return null;
-            return (
-              <div key={tier}>
-                <div className="px-2 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                  {TIER_LABELS[tier]}
-                </div>
-                {tierModels.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>
-                    <div className="flex items-center justify-between w-full gap-3">
-                      <div className="flex flex-col">
-                        <span className="text-sm">{m.name}</span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {m.provider}
-                        </span>
-                      </div>
-                      <span className="text-xs font-mono text-muted-foreground shrink-0">
-                        {m.costPer}/edit
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </div>
-            );
-          })}
-        </SelectContent>
-      </Select>
+      <ModelSelector value={model} onChange={setModel} />
 
       {/* Prompt input */}
       <div className="flex-1 relative">

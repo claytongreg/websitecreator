@@ -23,7 +23,8 @@ export async function GET(req: NextRequest) {
 // POST /api/sites — create a new site with AI-generated pages
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name, description, businessType, pages, inspirations, style } = body;
+  const { name, description, businessType, pages, inspirations, style, model: requestedModel } = body;
+  const model = requestedModel || "gpt-4o-mini";
 
   // Generate subdomain from name
   const subdomain = name
@@ -101,6 +102,7 @@ export async function POST(req: NextRequest) {
       inspirations,
       navLinks,
       allPages: flatPages.map((p) => p.title),
+      model,
     });
 
     pageData.push({
@@ -142,14 +144,20 @@ export async function POST(req: NextRequest) {
 
   // Log usage for the generation
   if (user) {
+    const { estimateCost, getModel } = await import("@/lib/ai");
+    const modelInfo = getModel(model);
+    const inputTokens = flatPages.length * 800;
+    const outputTokens = flatPages.length * 2000;
+    const costCents = estimateCost(model, inputTokens, outputTokens);
+
     await db.usageRecord.create({
       data: {
         userId: user.id,
-        provider: "openai",
-        model: "gpt-4o-mini",
-        inputTokens: flatPages.length * 800,
-        outputTokens: flatPages.length * 2000,
-        costCents: flatPages.length * 0.45, // 3x markup on ~$0.0015 base cost
+        provider: modelInfo?.provider ?? "unknown",
+        model,
+        inputTokens,
+        outputTokens,
+        costCents,
         action: "generate_site",
       },
     });
@@ -179,6 +187,7 @@ interface PageGenContext {
   }[];
   navLinks: string;
   allPages: string[];
+  model: string;
 }
 
 async function generatePageWithAI(ctx: PageGenContext): Promise<string> {
@@ -253,7 +262,7 @@ TECHNICAL REQUIREMENTS:
 
     let result = "";
     for await (const chunk of generateText(prompt, {
-      model: "gpt-4o-mini",
+      model: ctx.model,
       temperature: 0.5,
       maxTokens: 8192,
     })) {

@@ -10,6 +10,7 @@ import { GeneratingView } from "@/components/onboarding/GeneratingView";
 import type { InspirationSite, StyleOption, PageNode } from "@/types";
 import { getDefaultPages, flattenTree, flattenToTitles } from "@/lib/page-tree";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ModelSelector } from "@/components/ui/ModelSelector";
 
 type Step = "inspiration" | "description" | "style" | "generating";
 
@@ -25,6 +26,7 @@ export default function NewSitePage() {
   const [siteName, setSiteName] = useState("");
   const [styleOptions, setStyleOptions] = useState<StyleOption[]>([]);
   const [chosenStyle, setChosenStyle] = useState<StyleOption | null>(null);
+  const [selectedModel, setSelectedModel] = useState("llama-3.3-70b-versatile");
 
   const steps: Step[] = ["inspiration", "description", "style", "generating"];
   const currentIndex = steps.indexOf(step);
@@ -76,6 +78,7 @@ export default function NewSitePage() {
             pages: flattenTree(selectedPages),
             inspirations,
             style: chosenStyle,
+            model: selectedModel,
           }),
         });
         const data = await resp.json();
@@ -147,12 +150,22 @@ export default function NewSitePage() {
         )}
 
         {step === "style" && (
-          <StylePreview
-            options={styleOptions}
-            chosen={chosenStyle}
-            onChoose={setChosenStyle}
-            onRegenerate={() => handleNext()} // will re-fetch
-          />
+          <>
+            <StylePreview
+              options={styleOptions}
+              chosen={chosenStyle}
+              onChoose={setChosenStyle}
+              onRegenerate={() => handleNext()} // will re-fetch
+            />
+            <div className="mt-8 flex items-center gap-3">
+              <span className="text-sm text-muted-foreground">AI Model:</span>
+              <ModelSelector
+                value={selectedModel}
+                onChange={setSelectedModel}
+                pageCount={flattenTree(selectedPages).length}
+              />
+            </div>
+          </>
         )}
 
         {step === "generating" && (
