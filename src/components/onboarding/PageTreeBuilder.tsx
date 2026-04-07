@@ -53,11 +53,16 @@ export function PageTreeBuilder({ pages, onPagesChange }: Props) {
 
   const flatItems = flattenForDisplay(pages);
 
-  // Filter out collapsed children
-  const visibleItems = flatItems.filter((item) => {
-    if (item.parentId && collapsedIds.has(item.parentId)) return false;
-    return true;
-  });
+  // Filter out items whose any ancestor is collapsed
+  const visibleItems: FlatDisplayItem[] = [];
+  const hiddenIds = new Set<string>();
+  for (const item of flatItems) {
+    if (item.parentId && (collapsedIds.has(item.parentId) || hiddenIds.has(item.parentId))) {
+      hiddenIds.add(item.id);
+    } else {
+      visibleItems.push(item);
+    }
+  }
 
   const allSlugs = collectSlugs(pages);
   const usedSlugs = new Set(allSlugs);
@@ -128,7 +133,6 @@ export function PageTreeBuilder({ pages, onPagesChange }: Props) {
 
     if (
       horizontalOffset > 30 &&
-      overItem.depth === 0 &&
       overNode &&
       overNode.id !== active.id
     ) {
@@ -147,7 +151,7 @@ export function PageTreeBuilder({ pages, onPagesChange }: Props) {
       return;
     }
 
-    const position = overInfo?.id === over.id ? overInfo.position : "after";
+    const position = overInfo && overInfo.id === over.id ? overInfo.position : "after";
     const result = moveNode(pages, active.id as string, over.id as string, position);
     onPagesChange(result);
     setOverInfo(null);

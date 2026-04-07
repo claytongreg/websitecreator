@@ -1,5 +1,9 @@
 import type { PageNode, FlatPage } from "@/types";
 
+// ── Max nesting depth (0-indexed, so 3 = 4 levels total) ───────────────────
+
+export const MAX_NESTING_DEPTH = 3;
+
 // ── Preset pages (the original 10 options) ──────────────────────────────────
 
 export const PRESET_PAGES: { title: string; slug: string }[] = [
@@ -80,13 +84,14 @@ export function flattenTree(nodes: PageNode[]): FlatPage[] {
 
   function walk(items: PageNode[], parentSlug: string | null) {
     for (const node of items) {
+      const fullSlug = parentSlug ? `${parentSlug}/${node.slug}` : node.slug;
       result.push({
-        slug: parentSlug ? `${parentSlug}/${node.slug}` : node.slug,
+        slug: fullSlug,
         title: node.title,
         parentSlug,
         order: order++,
       });
-      walk(node.children, node.slug);
+      walk(node.children, fullSlug);
     }
   }
 
@@ -128,6 +133,13 @@ export function findNode(
     if (found) return found;
   }
   return null;
+}
+
+// ── Get the max depth within a subtree ──────────────────────────────────────
+
+export function getSubtreeMaxDepth(node: PageNode): number {
+  if (node.children.length === 0) return 0;
+  return 1 + Math.max(...node.children.map(getSubtreeMaxDepth));
 }
 
 // ── Get depth of a node ─────────────────────────────────────────────────────
@@ -233,11 +245,11 @@ export function moveNode(
   const [treeWithout, extracted] = extractNode(nodes, activeId);
   if (!extracted) return nodes;
 
-  // Prevent nesting beyond depth 1 (max 2 levels)
+  // Prevent nesting beyond MAX_NESTING_DEPTH
   if (position === "child") {
     const overDepth = getNodeDepth(treeWithout, overId);
-    if (overDepth >= 1) return nodes; // target is already a child
-    if (extracted.children.length > 0) return nodes; // can't nest a node that has children
+    const subtreeDepth = getSubtreeMaxDepth(extracted);
+    if (overDepth + 1 + subtreeDepth > MAX_NESTING_DEPTH) return nodes;
   }
 
   return insertNode(treeWithout, overId, extracted, position);

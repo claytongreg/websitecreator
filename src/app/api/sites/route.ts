@@ -70,21 +70,20 @@ export async function POST(req: NextRequest) {
     flatPages = pages as FlatPageInput[];
   }
 
-  // Build hierarchical navigation HTML
+  // Build hierarchical navigation HTML (supports multi-level nesting)
   const topLevel = flatPages.filter((p) => !p.parentSlug);
-  const navLinks = topLevel
-    .map((page) => {
-      const href = page.slug === "home" ? "/" : `/${page.slug}`;
-      const children = flatPages.filter((p) => p.parentSlug === page.slug);
-      if (children.length === 0) {
-        return `<a href="${href}">${page.title}</a>`;
-      }
-      const childLinks = children
-        .map((c) => `<a href="/${c.slug}">${c.title}</a>`)
-        .join("");
-      return `<div class="dropdown"><a href="${href}">${page.title}</a><div class="dropdown-menu">${childLinks}</div></div>`;
-    })
-    .join(" | ");
+
+  function buildNavItem(page: FlatPageInput): string {
+    const href = page.slug === "home" ? "/" : `/${page.slug}`;
+    const children = flatPages.filter((p) => p.parentSlug === page.slug);
+    if (children.length === 0) {
+      return `<a href="${href}">${page.title}</a>`;
+    }
+    const childLinks = children.map((c) => buildNavItem(c)).join("");
+    return `<div class="dropdown"><a href="${href}">${page.title}</a><div class="dropdown-menu">${childLinks}</div></div>`;
+  }
+
+  const navLinks = topLevel.map((page) => buildNavItem(page)).join(" | ");
 
   // Generate each page with AI
   const pageData = [];
