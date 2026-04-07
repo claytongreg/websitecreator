@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useEditorStore } from "@/lib/editor/store";
 import {
   FONT_OPTIONS,
@@ -15,9 +16,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, ChevronUp, ChevronDown } from "lucide-react";
 
 type HeadingLevel = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+
+// Google Fonts URL that loads all preview fonts (400 weight only for dropdown preview)
+const PREVIEW_FONTS_URL = `https://fonts.googleapis.com/css2?${FONT_OPTIONS.map(
+  (f) => `family=${f.replace(/ /g, "+")}`
+).join("&")}&display=swap`;
 
 const HEADING_LEVELS: HeadingLevel[] = ["h1", "h2", "h3", "h4", "h5", "h6"];
 
@@ -64,11 +70,35 @@ function HeadingRow({ level }: { level: HeadingLevel }) {
       <div className="grid grid-cols-3 gap-1.5">
         <div>
           <span className="text-[10px] text-muted-foreground">Size</span>
-          <Input
-            value={style.size}
-            onChange={(e) => setHeadingStyle(level, { size: e.target.value })}
-            className="text-xs h-7"
-          />
+          <div className="flex items-center gap-0.5">
+            <Input
+              value={style.size}
+              onChange={(e) => setHeadingStyle(level, { size: e.target.value })}
+              className="text-xs h-7 flex-1 min-w-0"
+            />
+            <div className="flex flex-col">
+              <button
+                type="button"
+                className="h-3.5 px-0.5 flex items-center justify-center rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => {
+                  const num = parseInt(style.size) || 0;
+                  setHeadingStyle(level, { size: `${num + 1}px` });
+                }}
+              >
+                <ChevronUp className="w-3 h-3" />
+              </button>
+              <button
+                type="button"
+                className="h-3.5 px-0.5 flex items-center justify-center rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => {
+                  const num = parseInt(style.size) || 0;
+                  if (num > 1) setHeadingStyle(level, { size: `${num - 1}px` });
+                }}
+              >
+                <ChevronDown className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
         </div>
         <div>
           <span className="text-[10px] text-muted-foreground">Weight</span>
@@ -111,6 +141,17 @@ export function ThemePanel() {
   const setThemeFont = useEditorStore((s) => s.setThemeFont);
   const setBaseFontSize = useEditorStore((s) => s.setBaseFontSize);
   const setShowThemePanel = useEditorStore((s) => s.setShowThemePanel);
+
+  // Load all Google Fonts into the parent page for dropdown previews
+  useEffect(() => {
+    const id = "wc-preview-fonts";
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = PREVIEW_FONTS_URL;
+    document.head.appendChild(link);
+  }, []);
 
   return (
     <div className="w-72 border-l flex flex-col h-full bg-background">
