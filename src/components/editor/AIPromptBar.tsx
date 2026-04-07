@@ -14,16 +14,17 @@ import { useEditorStore } from "@/lib/editor/store";
 import { Loader2, Send, Undo2, Redo2 } from "lucide-react";
 
 // All available models with clear pricing
+// Prices shown include 200% markup (3x API cost)
 const MODELS = [
   // Budget
-  { id: "gpt-4o-mini",                name: "GPT-4o Mini",       provider: "OpenAI",    tier: "budget",  costPer: "$0.001" },
-  { id: "gemini-2.0-flash",           name: "Gemini 2.0 Flash",  provider: "Google",    tier: "budget",  costPer: "$0.001" },
-  { id: "claude-haiku-4-5-20251001",  name: "Claude Haiku 4.5",  provider: "Anthropic", tier: "budget",  costPer: "$0.002" },
+  { id: "gpt-4o-mini",                name: "GPT-4o Mini",       provider: "OpenAI",    tier: "budget",  costPer: "$0.003" },
+  { id: "gemini-2.0-flash",           name: "Gemini 2.0 Flash",  provider: "Google",    tier: "budget",  costPer: "$0.003" },
+  { id: "claude-haiku-4-5-20251001",  name: "Claude Haiku 4.5",  provider: "Anthropic", tier: "budget",  costPer: "$0.006" },
   // Standard
-  { id: "gpt-4o",                     name: "GPT-4o",            provider: "OpenAI",    tier: "standard", costPer: "$0.005" },
-  { id: "gemini-2.0-pro",             name: "Gemini 2.0 Pro",    provider: "Google",    tier: "standard", costPer: "$0.004" },
+  { id: "gpt-4o",                     name: "GPT-4o",            provider: "OpenAI",    tier: "standard", costPer: "$0.015" },
+  { id: "gemini-2.0-pro",             name: "Gemini 2.0 Pro",    provider: "Google",    tier: "standard", costPer: "$0.012" },
   // Premium
-  { id: "claude-sonnet-4-20250514",   name: "Claude Sonnet 4",   provider: "Anthropic", tier: "premium",  costPer: "$0.008" },
+  { id: "claude-sonnet-4-20250514",   name: "Claude Sonnet 4",   provider: "Anthropic", tier: "premium",  costPer: "$0.024" },
 ];
 
 const TIER_LABELS: Record<string, string> = {

@@ -31,6 +31,9 @@ export function getModelsForCapability(
   return getAllModels().filter((m) => m.capabilities.includes(capability));
 }
 
+// 200% markup on all API costs (3x base cost)
+const MARKUP_MULTIPLIER = 3;
+
 export function estimateCost(
   modelId: string,
   inputTokens: number,
@@ -38,10 +41,10 @@ export function estimateCost(
 ): number {
   const model = getModel(modelId);
   if (!model) return 0;
-  return (
+  const baseCost =
     (inputTokens / 1000) * model.inputCostPer1k +
-    (outputTokens / 1000) * model.outputCostPer1k
-  );
+    (outputTokens / 1000) * model.outputCostPer1k;
+  return baseCost * MARKUP_MULTIPLIER;
 }
 
 export async function* generateText(

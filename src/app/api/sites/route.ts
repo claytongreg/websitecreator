@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
         model: "gpt-4o-mini",
         inputTokens: pageList.length * 800,
         outputTokens: pageList.length * 2000,
-        costCents: pageList.length * 0.15,
+        costCents: pageList.length * 0.45, // 3x markup on ~$0.0015 base cost
         action: "generate_site",
       },
     });
