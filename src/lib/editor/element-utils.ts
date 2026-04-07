@@ -44,3 +44,12 @@ export function duplicateElement(html: string, path: string): string | null {
   el.parentElement.insertBefore(clone, el.nextSibling);
   return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
 }
+
+export function replaceElementContent(html: string, path: string, newContent: string): string | null {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const el = doc.querySelector(path);
+  if (!el) return null;
+  el.textContent = newContent;
+  return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
+}

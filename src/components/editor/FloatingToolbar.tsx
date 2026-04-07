@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { useEditorStore } from "@/lib/editor/store";
 import {
   getElementType,
   deleteElement,
   duplicateElement,
+  replaceElementContent,
 } from "@/lib/editor/element-utils";
 import {
   Sparkles,
@@ -16,6 +18,7 @@ import {
   Trash2,
   ArrowUp,
   ArrowDown,
+  Pencil,
 } from "lucide-react";
 
 interface FloatingToolbarProps {
@@ -28,10 +31,18 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
     useEditorStore();
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [contentOpen, setContentOpen] = useState(false);
+  const [contentValue, setContentValue] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Close content panel when selection changes
+  useEffect(() => {
+    setContentOpen(false);
+  }, [selectedElement?.path]);
 
   const computePosition = useCallback(() => {
     if (!selectedElement || !iframeRef.current) {
@@ -132,6 +143,27 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
     );
   };
 
+  const handleContentOpen = () => {
+    setContentValue(selectedElement?.textContent ?? "");
+    setContentOpen(true);
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  };
+
+  const handleContentApply = () => {
+    if (!selectedElement) return;
+    const result = replaceElementContent(html, selectedElement.path, contentValue);
+    if (result) {
+      pushAction({
+        type: "edit",
+        elementPath: selectedElement.path,
+        before: html,
+        after: result,
+        timestamp: Date.now(),
+      });
+    }
+    setContentOpen(false);
+  };
+
   const toolbar = (
     <div
       className="fixed z-50 flex items-center gap-0.5 bg-white rounded-lg shadow-xl border px-1 py-0.5"
@@ -159,16 +191,28 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
 
       {/* Edit Text — text elements only */}
       {elementType === "text" && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2 text-xs gap-1"
-          title="Edit text"
-          onClick={handleEditText}
-        >
-          <Type className="w-3 h-3" />
-          Edit
-        </Button>
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs gap-1"
+            title="Edit text inline"
+            onClick={handleEditText}
+          >
+            <Type className="w-3 h-3" />
+            Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`h-7 px-2 text-xs gap-1 ${contentOpen ? "bg-accent" : ""}`}
+            title="Change content"
+            onClick={() => contentOpen ? setContentOpen(false) : handleContentOpen()}
+          >
+            <Pencil className="w-3 h-3" />
+            Content
+          </Button>
+        </>
       )}
 
       {/* Move Up/Down — sections only */}
@@ -219,5 +263,49 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
     </div>
   );
 
-  return createPortal(toolbar, document.body);
+  const contentPanel = contentOpen && position ? (
+    <div
+      className="fixed z-50 bg-white rounded-lg shadow-xl border p-2 w-72"
+      style={{ top: position.top + 44, left: position.left }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <Textarea
+        ref={textareaRef}
+        value={contentValue}
+        onChange={(e) => setContentValue(e.target.value)}
+        className="text-sm min-h-[80px] resize-y"
+        placeholder="Enter new content..."
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            handleContentApply();
+          }
+        }}
+      />
+      <div className="flex justify-end gap-1 mt-1.5">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 text-xs"
+          onClick={() => setContentOpen(false)}
+        >
+          Cancel
+        </Button>
+        <Button
+          size="sm"
+          className="h-7 text-xs"
+          onClick={handleContentApply}
+        >
+          Apply
+        </Button>
+      </div>
+    </div>
+  ) : null;
+
+  return createPortal(
+    <>
+      {toolbar}
+      {contentPanel}
+    </>,
+    document.body
+  );
 }
