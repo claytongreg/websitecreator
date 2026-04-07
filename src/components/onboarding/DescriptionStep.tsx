@@ -3,7 +3,6 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -11,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PageTreeBuilder } from "@/components/onboarding/PageTreeBuilder";
+import type { PageNode } from "@/types";
 
 const BUSINESS_TYPES = [
   "Portfolio / Personal",
@@ -26,19 +27,6 @@ const BUSINESS_TYPES = [
   "Other",
 ];
 
-const PAGE_OPTIONS = [
-  { id: "home", label: "Home" },
-  { id: "about", label: "About" },
-  { id: "services", label: "Services" },
-  { id: "portfolio", label: "Portfolio" },
-  { id: "blog", label: "Blog" },
-  { id: "contact", label: "Contact" },
-  { id: "pricing", label: "Pricing" },
-  { id: "faq", label: "FAQ" },
-  { id: "testimonials", label: "Testimonials" },
-  { id: "team", label: "Team" },
-];
-
 interface Props {
   siteName: string;
   onSiteNameChange: (name: string) => void;
@@ -46,8 +34,8 @@ interface Props {
   onDescriptionChange: (desc: string) => void;
   businessType: string;
   onBusinessTypeChange: (type: string) => void;
-  selectedPages: string[];
-  onPagesChange: (pages: string[]) => void;
+  pages: PageNode[];
+  onPagesChange: (pages: PageNode[]) => void;
 }
 
 export function DescriptionStep({
@@ -57,20 +45,9 @@ export function DescriptionStep({
   onDescriptionChange,
   businessType,
   onBusinessTypeChange,
-  selectedPages,
+  pages,
   onPagesChange,
 }: Props) {
-  const togglePage = (pageId: string) => {
-    if (selectedPages.includes(pageId)) {
-      // Don't allow removing the last page
-      if (selectedPages.length > 1) {
-        onPagesChange(selectedPages.filter((p) => p !== pageId));
-      }
-    } else {
-      onPagesChange([...selectedPages, pageId]);
-    }
-  };
-
   return (
     <div className="space-y-8">
       <div>
@@ -123,21 +100,11 @@ export function DescriptionStep({
       </div>
 
       <div className="space-y-3">
-        <Label>Pages to generate</Label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          {PAGE_OPTIONS.map((page) => (
-            <label
-              key={page.id}
-              className="flex items-center gap-2 cursor-pointer"
-            >
-              <Checkbox
-                checked={selectedPages.includes(page.id)}
-                onCheckedChange={() => togglePage(page.id)}
-              />
-              <span className="text-sm">{page.label}</span>
-            </label>
-          ))}
-        </div>
+        <Label>Site pages</Label>
+        <p className="text-xs text-muted-foreground -mt-1">
+          Add pages and drag them to set order. Drag right onto another page to nest it.
+        </p>
+        <PageTreeBuilder pages={pages} onPagesChange={onPagesChange} />
       </div>
     </div>
   );

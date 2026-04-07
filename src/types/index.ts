@@ -38,6 +38,22 @@ export interface AIProvider {
   generateImage?(prompt: string, options: ImageOptions): Promise<string>;
 }
 
+// --- Page Tree ---
+
+export interface PageNode {
+  id: string;
+  title: string;
+  slug: string;
+  children: PageNode[];
+}
+
+export interface FlatPage {
+  slug: string;
+  title: string;
+  parentSlug: string | null;
+  order: number;
+}
+
 // --- Onboarding ---
 
 export interface ExtractedStyle {
@@ -57,7 +73,7 @@ export interface OnboardingData {
   inspirations: InspirationSite[];
   description: string;
   businessType: string;
-  pages: string[]; // ["home", "about", "contact", ...]
+  pages: PageNode[];
   chosenStyle?: StyleOption;
 }
 

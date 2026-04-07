@@ -7,7 +7,8 @@ import { InspirationStep } from "@/components/onboarding/InspirationStep";
 import { DescriptionStep } from "@/components/onboarding/DescriptionStep";
 import { StylePreview } from "@/components/onboarding/StylePreview";
 import { GeneratingView } from "@/components/onboarding/GeneratingView";
-import type { InspirationSite, StyleOption } from "@/types";
+import type { InspirationSite, StyleOption, PageNode } from "@/types";
+import { getDefaultPages, flattenTree, flattenToTitles } from "@/lib/page-tree";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 type Step = "inspiration" | "description" | "style" | "generating";
@@ -20,11 +21,7 @@ export default function NewSitePage() {
   const [inspirations, setInspirations] = useState<InspirationSite[]>([]);
   const [description, setDescription] = useState("");
   const [businessType, setBusinessType] = useState("");
-  const [selectedPages, setSelectedPages] = useState<string[]>([
-    "home",
-    "about",
-    "contact",
-  ]);
+  const [selectedPages, setSelectedPages] = useState<PageNode[]>(getDefaultPages);
   const [siteName, setSiteName] = useState("");
   const [styleOptions, setStyleOptions] = useState<StyleOption[]>([]);
   const [chosenStyle, setChosenStyle] = useState<StyleOption | null>(null);
@@ -76,7 +73,7 @@ export default function NewSitePage() {
             name: siteName,
             description,
             businessType,
-            pages: selectedPages,
+            pages: flattenTree(selectedPages),
             inspirations,
             style: chosenStyle,
           }),
@@ -144,7 +141,7 @@ export default function NewSitePage() {
             onDescriptionChange={setDescription}
             businessType={businessType}
             onBusinessTypeChange={setBusinessType}
-            selectedPages={selectedPages}
+            pages={selectedPages}
             onPagesChange={setSelectedPages}
           />
         )}
@@ -159,7 +156,7 @@ export default function NewSitePage() {
         )}
 
         {step === "generating" && (
-          <GeneratingView siteName={siteName} pages={selectedPages} />
+          <GeneratingView siteName={siteName} pages={flattenToTitles(selectedPages)} />
         )}
       </main>
 
