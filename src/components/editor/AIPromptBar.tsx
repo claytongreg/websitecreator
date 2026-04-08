@@ -10,10 +10,45 @@ import { Loader2, Send, Undo2, Redo2, ImagePlus, Camera, X } from "lucide-react"
 import { PhotoWidget } from "./PhotoWidget";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
+import { replaceElementByPath } from "@/lib/editor/element-utils";
 
 interface Props {
   siteId: string;
   pageSlug: string;
+}
+
+/** Build a lightweight page skeleton preserving tag names + class attributes only. */
+function buildPageSkeleton(fullHtml: string): string | null {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(fullHtml, "text/html");
+
+    function skeletonize(el: Element): string {
+      const tag = el.tagName.toLowerCase();
+      // Skip script/style/meta/link tags
+      if (["script", "style", "meta", "link", "noscript"].includes(tag)) return "";
+
+      const cls = el.getAttribute("class");
+      const id = el.getAttribute("id");
+      const attrs = [
+        id ? ` id="${id}"` : "",
+        cls ? ` class="${cls}"` : "",
+      ].join("");
+
+      const children = Array.from(el.children);
+      if (children.length === 0) {
+        return `<${tag}${attrs}>...</${tag}>`;
+      }
+      const inner = children.map(skeletonize).filter(Boolean).join("\n");
+      return `<${tag}${attrs}>\n${inner}\n</${tag}>`;
+    }
+
+    const body = doc.body;
+    if (!body) return null;
+    return skeletonize(body);
+  } catch {
+    return null;
+  }
 }
 
 export function AIPromptBar({ siteId }: Props) {
@@ -67,25 +102,41 @@ export function AIPromptBar({ siteId }: Props) {
 
     setAiLoading(true);
     const before = html;
+    const useElementMode = !!selectedElement;
 
     try {
+      const body: Record<string, unknown> = {
+        prompt: prompt.trim(),
+        model,
+        siteId,
+        ...(screenshot ? { screenshot } : {}),
+      };
+
+      if (useElementMode && selectedElement) {
+        body.editMode = "element";
+        body.elementHtml = selectedElement.outerHTML;
+        body.selectedElement = {
+          path: selectedElement.path,
+          tagName: selectedElement.tagName,
+        };
+        const skeleton = buildPageSkeleton(html);
+        if (skeleton) body.context = skeleton;
+      } else {
+        body.editMode = "page";
+        body.currentHtml = html;
+        body.selectedElement = selectedElement
+          ? {
+              path: selectedElement.path,
+              tagName: selectedElement.tagName,
+              outerHTML: selectedElement.outerHTML,
+            }
+          : null;
+      }
+
       const resp = await fetch("/api/ai/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: prompt.trim(),
-          model,
-          siteId,
-          currentHtml: html,
-          selectedElement: selectedElement
-            ? {
-                path: selectedElement.path,
-                tagName: selectedElement.tagName,
-                outerHTML: selectedElement.outerHTML,
-              }
-            : null,
-          ...(screenshot ? { screenshot } : {}),
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!resp.ok) {
@@ -96,11 +147,28 @@ export function AIPromptBar({ siteId }: Props) {
       const data = await resp.json();
 
       if (data.html) {
+        let finalHtml: string | null = null;
+
+        if (data.editMode === "element" && selectedElement) {
+          // Defensive: if AI returned a full document despite element-mode prompt, use it directly
+          if (data.html.includes("<!DOCTYPE") || data.html.includes("<html")) {
+            finalHtml = data.html;
+          } else {
+            finalHtml = replaceElementByPath(html, selectedElement.path, data.html);
+            if (!finalHtml) {
+              toast.error("Could not apply element edit — try again without selection");
+              return;
+            }
+          }
+        } else {
+          finalHtml = data.html;
+        }
+
         pushAction({
           type: "edit",
           elementPath: selectedElement?.path ?? "document",
           before,
-          after: data.html,
+          after: finalHtml,
           timestamp: Date.now(),
         });
         toast.success("Edit applied");

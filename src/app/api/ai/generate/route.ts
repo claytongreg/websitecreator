@@ -3,10 +3,24 @@ import { db } from "@/lib/db";
 
 // POST /api/ai/generate — Generate or edit HTML using AI
 export async function POST(req: NextRequest) {
-  const { prompt, model, siteId, currentHtml, selectedElement, screenshot } = await req.json();
+  const { prompt, model, siteId, currentHtml, selectedElement, screenshot, editMode, elementHtml, context } = await req.json();
 
-  // Build the system prompt for HTML editing
-  const systemPrompt = `You are an expert web developer. The user is editing a website using a visual editor.
+  const isElementMode = editMode === "element" && elementHtml;
+
+  // Build the system prompt based on edit mode
+  const systemPrompt = isElementMode
+    ? `You are an expert web developer. The user is editing a single HTML element in a visual website editor.
+You will receive the element's HTML and optionally a page structure skeleton for style context.
+
+Rules:
+- Return ONLY the modified element HTML fragment (NOT a full document — no <!DOCTYPE>, <html>, <head>, or <body> tags)
+- Do NOT include any explanation, markdown, or code fences
+- Keep the element's structure intact unless the user specifically asks to change it
+- Use Tailwind CSS classes for styling
+- Ensure the HTML is valid and well-formed
+- Make the minimum changes necessary to fulfill the request
+- Be creative and make it look professional${screenshot ? "\n- The user has attached a screenshot for visual reference" : ""}`
+    : `You are an expert web developer. The user is editing a website using a visual editor.
 You will receive the current page HTML and optionally a selected element. Your job is to modify the HTML
 according to the user's natural language instruction.
 
@@ -24,15 +38,28 @@ Rules:
     const { generateText, estimateCost, getModel } = await import("@/lib/ai");
     const modelInfo = getModel(model);
 
-    // Groq free tier has a 12K TPM limit — reject if page is too large
-    const htmlInput = currentHtml ?? "";
+    // Build user prompt based on mode
+    let userPrompt: string;
+    if (isElementMode) {
+      userPrompt = `Element to edit (${selectedElement?.tagName ?? "element"}):\n\`\`\`html\n${elementHtml}\n\`\`\``;
+      if (context) {
+        userPrompt += `\n\nPage structure (for style context only — do NOT return a full page):\n\`\`\`html\n${context}\n\`\`\``;
+      }
+      userPrompt += `\n\nUser request: "${prompt}"\n\nReturn only the modified element HTML fragment.`;
+    } else {
+      const htmlInput = currentHtml ?? "";
+      userPrompt = selectedElement
+        ? `Current page HTML:\n\`\`\`html\n${htmlInput}\n\`\`\`\n\nSelected element (CSS path: ${selectedElement.path}):\n\`\`\`html\n${selectedElement.outerHTML}\n\`\`\`\n\nUser request: "${prompt}"\n\nModify the HTML to fulfill this request. Focus changes on the selected element. Return the complete modified HTML document.`
+        : `Current page HTML:\n\`\`\`html\n${htmlInput}\n\`\`\`\n\nUser request: "${prompt}"\n\nModify the HTML to fulfill this request. Return the complete modified HTML document.`;
+    }
+
+    // Groq free tier has a 12K TPM limit — reject if too large
     let maxTokens = modelInfo?.maxTokens ?? 8192;
     if (modelInfo?.provider === "groq") {
       const TOKEN_BUDGET = 12000;
       const RESERVED_OUTPUT = 4096;
-      const totalInputChars = systemPrompt.length + htmlInput.length + 300 +
-        (prompt?.length ?? 0) + (selectedElement?.outerHTML?.length ?? 0);
-      const estimatedTotal = Math.ceil(totalInputChars / 4) + RESERVED_OUTPUT;
+      const estimatedInput = Math.ceil((systemPrompt.length + userPrompt.length) / 4);
+      const estimatedTotal = estimatedInput + RESERVED_OUTPUT;
       if (estimatedTotal > TOKEN_BUDGET) {
         return NextResponse.json(
           { error: "Page is too large for this free model. Switch to GPT-4o, Claude, or Gemini for larger pages." },
@@ -41,10 +68,6 @@ Rules:
       }
       maxTokens = RESERVED_OUTPUT;
     }
-
-    const userPrompt = selectedElement
-      ? `Current page HTML:\n\`\`\`html\n${htmlInput}\n\`\`\`\n\nSelected element (CSS path: ${selectedElement.path}):\n\`\`\`html\n${selectedElement.outerHTML}\n\`\`\`\n\nUser request: "${prompt}"\n\nModify the HTML to fulfill this request. Focus changes on the selected element. Return the complete modified HTML document.`
-      : `Current page HTML:\n\`\`\`html\n${htmlInput}\n\`\`\`\n\nUser request: "${prompt}"\n\nModify the HTML to fulfill this request. Return the complete modified HTML document.`;
 
     let result = "";
     for await (const chunk of generateText(userPrompt, {
@@ -77,7 +100,6 @@ Rules:
 
     // Log usage to database
     try {
-      // Find user from site ownership (TODO: use auth session instead)
       const site = siteId
         ? await db.site.findUnique({ where: { id: siteId }, select: { userId: true } })
         : null;
@@ -98,11 +120,11 @@ Rules:
       }
     } catch (logError) {
       console.error("Failed to log usage:", logError);
-      // Don't fail the request if logging fails
     }
 
     return NextResponse.json({
       html,
+      editMode: isElementMode ? "element" : "page",
       inputTokens,
       outputTokens,
       costCents,

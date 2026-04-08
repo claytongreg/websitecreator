@@ -85,6 +85,19 @@ export function insertSnippetHtml(
   return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
 }
 
+export function replaceElementByPath(html: string, path: string, newElementHtml: string): string | null {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const el = doc.querySelector(path);
+  if (!el) return null;
+  const temp = doc.createElement("div");
+  temp.innerHTML = newElementHtml.trim();
+  const newChild = temp.firstElementChild;
+  if (!newChild) return null;
+  el.replaceWith(newChild);
+  return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
+}
+
 export function replaceElementContent(html: string, path: string, newContent: string): string | null {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
