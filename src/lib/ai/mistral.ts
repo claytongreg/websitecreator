@@ -54,6 +54,12 @@ const mistralProvider: AIProvider = {
     for await (const event of stream) {
       const content = event.data.choices[0]?.delta?.content;
       if (typeof content === "string" && content) yield content;
+      if (event.data.usage && options.onUsage) {
+        options.onUsage({
+          inputTokens: event.data.usage.promptTokens ?? 0,
+          outputTokens: event.data.usage.completionTokens ?? 0,
+        });
+      }
     }
   },
 };

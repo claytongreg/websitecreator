@@ -7,6 +7,7 @@ import { InspirationStep } from "@/components/onboarding/InspirationStep";
 import { DescriptionStep } from "@/components/onboarding/DescriptionStep";
 import { StylePreview } from "@/components/onboarding/StylePreview";
 import { GeneratingView } from "@/components/onboarding/GeneratingView";
+import type { GenerationProgress } from "@/components/onboarding/GeneratingView";
 import type { InspirationSite, StyleOption, PageNode } from "@/types";
 import { getDefaultPages, flattenTree, flattenToTitles } from "@/lib/page-tree";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -27,6 +28,7 @@ export default function NewSitePage() {
   const [styleOptions, setStyleOptions] = useState<StyleOption[]>([]);
   const [chosenStyle, setChosenStyle] = useState<StyleOption | null>(null);
   const [selectedModel, setSelectedModel] = useState("claude-opus-4-20250514");
+  const [generationProgress, setGenerationProgress] = useState<GenerationProgress | null>(null);
 
   const steps: Step[] = ["inspiration", "description", "style", "generating"];
   const currentIndex = steps.indexOf(step);
@@ -44,9 +46,75 @@ export default function NewSitePage() {
     }
   };
 
+  const startGeneration = async () => {
+    setStep("generating");
+    setGenerationProgress(null);
+    try {
+      const resp = await fetch("/api/sites/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: siteName,
+          description,
+          businessType,
+          pages: flattenTree(selectedPages),
+          inspirations,
+          style: chosenStyle,
+          model: selectedModel,
+        }),
+      });
+
+      if (!resp.ok) {
+        throw new Error(`Server error: ${resp.status}`);
+      }
+
+      const reader = resp.body?.getReader();
+      if (!reader) throw new Error("No response stream");
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const event = JSON.parse(line) as GenerationProgress;
+            setGenerationProgress(event);
+
+            if (event.type === "complete" && event.siteId) {
+              const parts = [];
+              if (event.costCents) parts.push(`generationCost=${event.costCents}`);
+              if (selectedModel) parts.push(`generationModel=${encodeURIComponent(selectedModel)}`);
+              if (event.inputTokens) parts.push(`inputTokens=${event.inputTokens}`);
+              if (event.outputTokens) parts.push(`outputTokens=${event.outputTokens}`);
+              const params = parts.length ? `?${parts.join("&")}` : "";
+              setTimeout(() => {
+                router.push(`/editor/${event.siteId}/index${params}`);
+              }, 1200);
+            }
+          } catch {
+            // skip malformed lines
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to create site:", err);
+      setGenerationProgress({
+        type: "error",
+        message: err instanceof Error ? err.message : "Failed to generate site. Please try again.",
+      });
+    }
+  };
+
   const handleNext = async () => {
     if (step === "description") {
-      // Generate style options before moving to style step
       setStep("style");
       try {
         const resp = await fetch("/api/ai/generate-styles", {
@@ -61,36 +129,10 @@ export default function NewSitePage() {
         const data = await resp.json();
         setStyleOptions(data.options ?? []);
       } catch {
-        // Provide fallback style options
         setStyleOptions(getFallbackStyles());
       }
     } else if (step === "style") {
-      setStep("generating");
-      // Trigger site generation
-      try {
-        const resp = await fetch("/api/sites", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: siteName,
-            description,
-            businessType,
-            pages: flattenTree(selectedPages),
-            inspirations,
-            style: chosenStyle,
-            model: selectedModel,
-          }),
-        });
-        const data = await resp.json();
-        if (data.site?.id) {
-          const params = data.costCents
-            ? `?generationCost=${data.costCents}&generationModel=${encodeURIComponent(selectedModel)}`
-            : "";
-          router.push(`/editor/${data.site.id}/index${params}`);
-        }
-      } catch (err) {
-        console.error("Failed to create site:", err);
-      }
+      startGeneration();
     } else {
       setStep(steps[currentIndex + 1]);
     }
@@ -172,7 +214,12 @@ export default function NewSitePage() {
         )}
 
         {step === "generating" && (
-          <GeneratingView siteName={siteName} pages={flattenToTitles(selectedPages)} />
+          <GeneratingView
+            siteName={siteName}
+            pages={flattenToTitles(selectedPages)}
+            progress={generationProgress}
+            onRetry={startGeneration}
+          />
         )}
       </main>
 

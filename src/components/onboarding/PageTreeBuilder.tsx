@@ -30,6 +30,7 @@ import {
   updateNodeTitle,
   findNode,
   PRESET_PAGES,
+  MAX_NESTING_DEPTH,
   type FlatDisplayItem,
 } from "@/lib/page-tree";
 
@@ -40,12 +41,15 @@ interface Props {
 
 export function PageTreeBuilder({ pages, onPagesChange }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [overInfo, setOverInfo] = useState<{
-    id: string;
+  const [dropTarget, setDropTarget] = useState<{
+    overId: string;
+    targetId: string;
     position: "before" | "after" | "child";
+    depth: number;
   } | null>(null);
   const [newPageTitle, setNewPageTitle] = useState("");
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -115,51 +119,96 @@ export function PageTreeBuilder({ pages, onPagesChange }: Props) {
   function handleDragOver(event: DragOverEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) {
-      setOverInfo(null);
+      setDropTarget(null);
       return;
     }
 
-    // Determine nesting based on horizontal offset
-    const activeRect = event.active.rect.current.translated;
     const overItem = visibleItems.find((i) => i.id === over.id);
-    if (!activeRect || !overItem) {
-      setOverInfo(null);
+    if (!overItem) {
+      setDropTarget(null);
       return;
     }
 
-    // If dragging to the right of the over item, nest as child
-    const overNode = findNode(pages, over.id as string);
-    const horizontalOffset = (event.delta?.x ?? 0);
+    // Use pointer's absolute X position relative to the container
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (!containerRect) {
+      setDropTarget(null);
+      return;
+    }
 
-    if (
-      horizontalOffset > 30 &&
-      overNode &&
-      overNode.id !== active.id
-    ) {
-      setOverInfo({ id: over.id as string, position: "child" });
+    const activatorEvent = event.activatorEvent as PointerEvent;
+    const currentX = activatorEvent.clientX + (event.delta?.x ?? 0);
+    const relativeX = currentX - containerRect.left;
+
+    // Each depth level = 28px indent, 20px base offset
+    const rawDepth = Math.max(0, Math.floor((relativeX - 20) / 28));
+    const maxAllowedDepth = Math.min(overItem.depth + 1, MAX_NESTING_DEPTH);
+    const projectedDepth = Math.min(rawDepth, maxAllowedDepth);
+
+    const overId = over.id as string;
+
+    if (projectedDepth > overItem.depth) {
+      // Nest as child of the hovered item
+      setDropTarget({
+        overId,
+        targetId: overId,
+        position: "child",
+        depth: overItem.depth + 1,
+      });
+    } else if (projectedDepth < overItem.depth) {
+      // Un-nest: find ancestor at the projected depth
+      let ancestor = overItem;
+      while (ancestor.depth > projectedDepth && ancestor.parentId) {
+        const parent = visibleItems.find((i) => i.id === ancestor.parentId);
+        if (!parent) break;
+        ancestor = parent;
+      }
+      // Don't target the item being dragged
+      if (ancestor.id === (active.id as string)) {
+        setDropTarget(null);
+        return;
+      }
+      setDropTarget({
+        overId,
+        targetId: ancestor.id,
+        position: "after",
+        depth: projectedDepth,
+      });
     } else {
-      setOverInfo({ id: over.id as string, position: "after" });
+      // Same level: use direction to determine before/after
+      const activeIndex = visibleItems.findIndex((i) => i.id === active.id);
+      const overIndex = visibleItems.findIndex((i) => i.id === over.id);
+      const position = activeIndex > overIndex ? "before" : "after";
+      setDropTarget({
+        overId,
+        targetId: overId,
+        position,
+        depth: overItem.depth,
+      });
     }
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
     setActiveId(null);
 
-    if (!over || active.id === over.id) {
-      setOverInfo(null);
+    if (!event.over || !dropTarget) {
+      setDropTarget(null);
       return;
     }
 
-    const position = overInfo && overInfo.id === over.id ? overInfo.position : "after";
-    const result = moveNode(pages, active.id as string, over.id as string, position);
+    const result = moveNode(
+      pages,
+      event.active.id as string,
+      dropTarget.targetId,
+      dropTarget.position
+    );
     onPagesChange(result);
-    setOverInfo(null);
+    setDropTarget(null);
   }
 
   function handleDragCancel() {
     setActiveId(null);
-    setOverInfo(null);
+    setDropTarget(null);
   }
 
   const activeNode = activeId ? findNode(pages, activeId) : null;
@@ -178,22 +227,26 @@ export function PageTreeBuilder({ pages, onPagesChange }: Props) {
           items={visibleItems.map((i) => i.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="border rounded-lg divide-y">
-            {visibleItems.map((item) => (
-              <SortablePageItem
-                key={item.id}
-                item={item}
-                isOver={overInfo?.id === item.id}
-                overPosition={overInfo?.id === item.id ? overInfo.position : null}
-                hasChildren={item.node.children.length > 0}
-                isCollapsed={collapsedIds.has(item.id)}
-                canDelete={totalPages > 1}
-                onRemove={() => handleRemove(item.id)}
-                onRename={(title) => handleRename(item.id, title)}
-                onToggleCollapse={() => toggleCollapse(item.id)}
-                isDragging={activeId === item.id}
-              />
-            ))}
+          <div ref={containerRef} className="border rounded-lg divide-y">
+            {visibleItems.map((item) => {
+              const isOver = dropTarget?.overId === item.id;
+              return (
+                <SortablePageItem
+                  key={item.id}
+                  item={item}
+                  isOver={isOver}
+                  overPosition={isOver ? dropTarget.position : null}
+                  indicatorDepth={isOver ? dropTarget.depth : undefined}
+                  hasChildren={item.node.children.length > 0}
+                  isCollapsed={collapsedIds.has(item.id)}
+                  canDelete={totalPages > 1}
+                  onRemove={() => handleRemove(item.id)}
+                  onRename={(title) => handleRename(item.id, title)}
+                  onToggleCollapse={() => toggleCollapse(item.id)}
+                  isDragging={activeId === item.id}
+                />
+              );
+            })}
           </div>
         </SortableContext>
 
@@ -256,6 +309,7 @@ interface SortablePageItemProps {
   item: FlatDisplayItem;
   isOver: boolean;
   overPosition: "before" | "after" | "child" | null;
+  indicatorDepth?: number;
   hasChildren: boolean;
   isCollapsed: boolean;
   canDelete: boolean;
@@ -269,6 +323,7 @@ function SortablePageItem({
   item,
   isOver,
   overPosition,
+  indicatorDepth,
   hasChildren,
   isCollapsed,
   canDelete,
@@ -313,15 +368,21 @@ function SortablePageItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group flex items-center gap-1.5 py-2 pr-2 text-sm ${
+      className={`relative group flex items-center gap-1.5 py-2 pr-2 text-sm ${
         isOver && overPosition === "child"
           ? "bg-muted/50"
           : ""
       }`}
     >
       {/* Drop indicator line */}
-      {isOver && overPosition === "after" && (
-        <div className="absolute left-0 right-0 bottom-0 h-0.5 bg-foreground" />
+      {isOver && overPosition !== "child" && (
+        <div
+          className="absolute right-0 h-0.5 bg-primary pointer-events-none z-10"
+          style={{
+            left: `${(indicatorDepth ?? item.depth) * 28 + 8}px`,
+            ...(overPosition === "before" ? { top: -1 } : { bottom: -1 }),
+          }}
+        />
       )}
 
       {/* Drag handle */}

@@ -15,12 +15,18 @@ export interface AIModel {
   maxTokens: number;
 }
 
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+}
+
 export interface GenerateOptions {
   model: string;
   systemPrompt?: string;
   temperature?: number;
   maxTokens?: number;
   images?: string[]; // base64 data URLs for vision-capable models
+  onUsage?: (usage: TokenUsage) => void;
 }
 
 export interface ImageOptions {

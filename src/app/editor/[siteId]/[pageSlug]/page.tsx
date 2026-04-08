@@ -83,12 +83,17 @@ export default function EditorPage() {
     const cost = params.get("generationCost");
     const genModel = params.get("generationModel");
     if (cost) {
-      addEdit({
+      const edit: Parameters<typeof addEdit>[0] = {
         action: "generate_site",
         model: genModel ?? "unknown",
         costCents: parseFloat(cost),
         timestamp: Date.now(),
-      });
+      };
+      const inTok = params.get("inputTokens");
+      const outTok = params.get("outputTokens");
+      if (inTok) edit.inputTokens = parseInt(inTok, 10);
+      if (outTok) edit.outputTokens = parseInt(outTok, 10);
+      addEdit(edit);
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, [addEdit]);

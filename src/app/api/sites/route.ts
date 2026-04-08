@@ -87,11 +87,13 @@ export async function POST(req: NextRequest) {
 
   // Generate each page with AI
   const pageData = [];
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
   for (let i = 0; i < flatPages.length; i++) {
     const fp = flatPages[i];
     const pageSlug = fp.slug === "home" ? "index" : fp.slug.replace(/\//g, "-");
 
-    const html = await generatePageWithAI({
+    const result = await generatePageWithAI({
       slug: fp.slug,
       pageTitle: fp.title,
       siteName: name,
@@ -104,10 +106,13 @@ export async function POST(req: NextRequest) {
       model,
     });
 
+    totalInputTokens += result.inputTokens;
+    totalOutputTokens += result.outputTokens;
+
     pageData.push({
       slug: pageSlug,
       title: fp.title,
-      html,
+      html: result.html,
       order: i,
     });
   }
@@ -141,12 +146,10 @@ export async function POST(req: NextRequest) {
     include: { pages: true },
   });
 
-  // Estimate generation cost
+  // Calculate cost from actual token usage
   const { estimateCost, getModel } = await import("@/lib/ai");
   const modelInfo = getModel(model);
-  const inputTokens = flatPages.length * 800;
-  const outputTokens = flatPages.length * 2000;
-  const costCents = estimateCost(model, inputTokens, outputTokens);
+  const costCents = estimateCost(model, totalInputTokens, totalOutputTokens);
 
   // Log usage for the generation
   if (user) {
@@ -155,15 +158,20 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         provider: modelInfo?.provider ?? "unknown",
         model,
-        inputTokens,
-        outputTokens,
+        inputTokens: totalInputTokens,
+        outputTokens: totalOutputTokens,
         costCents,
         action: "generate_site",
       },
     });
   }
 
-  return NextResponse.json({ site, costCents });
+  return NextResponse.json({
+    site,
+    costCents,
+    inputTokens: totalInputTokens,
+    outputTokens: totalOutputTokens,
+  });
 }
 
 // PATCH /api/sites — update site settings (e.g. themeSettings)
@@ -189,7 +197,13 @@ export async function PATCH(req: NextRequest) {
 // AI page generation
 // ---------------------------------------------------------------------------
 
-interface PageGenContext {
+export interface PageGenResult {
+  html: string;
+  inputTokens: number;
+  outputTokens: number;
+}
+
+export interface PageGenContext {
   slug: string;
   pageTitle: string;
   siteName: string;
@@ -209,7 +223,7 @@ interface PageGenContext {
   model: string;
 }
 
-async function generatePageWithAI(ctx: PageGenContext): Promise<string> {
+export async function generatePageWithAI(ctx: PageGenContext): Promise<PageGenResult> {
   const {
     slug,
     pageTitle,
@@ -349,11 +363,13 @@ TECHNICAL REQUIREMENTS:
   try {
     const { generateText } = await import("@/lib/ai");
 
+    let pageUsage = { inputTokens: 0, outputTokens: 0 };
     let result = "";
     for await (const chunk of generateText(prompt, {
       model: ctx.model,
       temperature: 0.5,
       maxTokens: 8192,
+      onUsage: (usage) => { pageUsage = usage; },
     })) {
       result += chunk;
     }
@@ -367,14 +383,14 @@ TECHNICAL REQUIREMENTS:
 
     // Validate it looks like HTML
     if (html.includes("<!DOCTYPE") || html.includes("<html")) {
-      return html;
+      return { html, ...pageUsage };
     }
   } catch (error) {
     console.error(`AI generation failed for page "${slug}":`, error);
   }
 
   // Fallback if AI fails
-  return generateFallbackHtml(ctx);
+  return { html: generateFallbackHtml(ctx), inputTokens: 0, outputTokens: 0 };
 }
 
 function getPageGuidance(slug: string, businessType: string): string {

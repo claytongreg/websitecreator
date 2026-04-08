@@ -153,6 +153,8 @@ export function AIPromptBar({ siteId }: Props) {
           action: selectedElement ? "edit_element" : "edit_page",
           model: data.model ?? model,
           costCents: data.costCents,
+          inputTokens: data.inputTokens,
+          outputTokens: data.outputTokens,
           timestamp: Date.now(),
         });
       }

@@ -94,9 +94,18 @@ const geminiProvider: AIProvider = {
       },
     });
 
+    let lastUsageMetadata: { promptTokenCount?: number; candidatesTokenCount?: number } | undefined;
     for await (const chunk of response) {
       const text = chunk.text;
       if (text) yield text;
+      if (chunk.usageMetadata) lastUsageMetadata = chunk.usageMetadata;
+    }
+
+    if (options.onUsage && lastUsageMetadata) {
+      options.onUsage({
+        inputTokens: lastUsageMetadata.promptTokenCount ?? 0,
+        outputTokens: lastUsageMetadata.candidatesTokenCount ?? 0,
+      });
     }
   },
 

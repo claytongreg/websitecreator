@@ -8,6 +8,8 @@ export interface SessionEdit {
   action: string;   // "generate_site" | "edit_page" | "edit_element" | "generate_image"
   model: string;
   costCents: number;
+  inputTokens?: number;
+  outputTokens?: number;
   timestamp: number;
 }
 

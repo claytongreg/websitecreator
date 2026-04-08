@@ -69,6 +69,7 @@ Rules:
       maxTokens = RESERVED_OUTPUT;
     }
 
+    let actualUsage = { inputTokens: 0, outputTokens: 0 };
     let result = "";
     for await (const chunk of generateText(userPrompt, {
       model,
@@ -76,6 +77,7 @@ Rules:
       temperature: 0.3,
       maxTokens,
       ...(screenshot ? { images: [screenshot] } : {}),
+      onUsage: (usage) => { actualUsage = usage; },
     })) {
       result += chunk;
     }
@@ -93,9 +95,9 @@ Rules:
     }
     html = html.trim();
 
-    // Rough token estimation (4 chars ≈ 1 token)
-    const inputTokens = Math.ceil((systemPrompt.length + userPrompt.length) / 4);
-    const outputTokens = Math.ceil(html.length / 4);
+    // Use actual token usage from the API, fall back to estimation if provider didn't report
+    const inputTokens = actualUsage.inputTokens || Math.ceil((systemPrompt.length + userPrompt.length) / 4);
+    const outputTokens = actualUsage.outputTokens || Math.ceil(html.length / 4);
     const costCents = estimateCost(model, inputTokens, outputTokens);
 
     // Log usage to database

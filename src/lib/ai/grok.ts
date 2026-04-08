@@ -62,11 +62,18 @@ const grokProvider: AIProvider = {
       temperature: options.temperature ?? 0.7,
       max_tokens: options.maxTokens ?? 4096,
       stream: true,
+      stream_options: options.onUsage ? { include_usage: true } : undefined,
     });
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content;
       if (content) yield content;
+      if (chunk.usage && options.onUsage) {
+        options.onUsage({
+          inputTokens: chunk.usage.prompt_tokens,
+          outputTokens: chunk.usage.completion_tokens,
+        });
+      }
     }
   },
 

@@ -63,12 +63,24 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
+function formatTokens(n: number) {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return String(n);
+}
+
 function SessionEditRow({ edit }: { edit: SessionEdit }) {
+  const hasTokens = edit.inputTokens || edit.outputTokens;
   return (
     <div className="flex items-center justify-between py-1.5 text-xs">
       <div className="flex flex-col gap-0.5">
         <span>{formatAction(edit.action)}</span>
         <span className="text-muted-foreground">{formatModel(edit.model)}</span>
+        {hasTokens && (
+          <span className="text-muted-foreground text-[10px]">
+            {formatTokens(edit.inputTokens ?? 0)} in · {formatTokens(edit.outputTokens ?? 0)} out
+          </span>
+        )}
       </div>
       <div className="flex flex-col items-end gap-0.5">
         <span className="font-mono">{formatCents(edit.costCents)}</span>

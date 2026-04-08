@@ -64,6 +64,15 @@ const groqProvider: AIProvider = {
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content;
       if (content) yield content;
+      if (options.onUsage && chunk.x_groq) {
+        const u = (chunk as unknown as { usage?: { prompt_tokens: number; completion_tokens: number } }).usage;
+        if (u) {
+          options.onUsage({
+            inputTokens: u.prompt_tokens,
+            outputTokens: u.completion_tokens,
+          });
+        }
+      }
     }
   },
 };

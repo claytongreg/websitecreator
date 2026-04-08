@@ -71,6 +71,14 @@ const anthropicProvider: AIProvider = {
         yield event.delta.text;
       }
     }
+
+    if (options.onUsage) {
+      const msg = await stream.finalMessage();
+      options.onUsage({
+        inputTokens: msg.usage.input_tokens,
+        outputTokens: msg.usage.output_tokens,
+      });
+    }
   },
 };
 
