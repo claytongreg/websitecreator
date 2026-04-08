@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { APP_VERSION } from "@/lib/version";
 import { ArrowRight } from "lucide-react";
 
 export default function LandingPage() {
@@ -89,6 +90,8 @@ export default function LandingPage() {
       <footer>
         <div className="max-w-5xl mx-auto px-6 py-8 text-center text-xs text-muted-foreground">
           EchoWebo
+          <span className="mx-2">|</span>
+          <span className="font-mono">v{APP_VERSION}</span>
         </div>
       </footer>
     </div>

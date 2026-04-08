@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { APP_VERSION } from "@/lib/version";
 import {
   Card,
   CardContent,
@@ -44,6 +45,9 @@ export default function DashboardPage() {
           </Link>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">My Sites</span>
+            <span className="rounded-full border px-2 py-1 font-mono text-xs text-muted-foreground">
+              v{APP_VERSION}
+            </span>
           </div>
         </div>
       </header>
