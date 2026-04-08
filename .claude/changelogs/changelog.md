@@ -4,6 +4,10 @@ All notable changes to EchoWebo will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Background opacity control** - Color picker now includes an opacity/alpha slider for semi-transparent backgrounds
+- **Gradient backgrounds** - New Solid/Gradient toggle with linear and radial gradient support, direction presets, and dual color stops with independent alpha controls
+
 ## [0.1.1] - 2026-04-07
 
 ### Added

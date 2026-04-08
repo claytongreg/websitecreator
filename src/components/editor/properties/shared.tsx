@@ -18,6 +18,68 @@ export function rgbToHex(rgb: string): string {
   return "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
 }
 
+/** Parse any CSS color string into {hex, alpha} */
+export function parseColor(raw: string): { hex: string; alpha: number } {
+  if (!raw || raw === "transparent" || raw === "rgba(0, 0, 0, 0)")
+    return { hex: "", alpha: 1 };
+  if (raw.startsWith("#")) {
+    // Handle 8-char hex (#rrggbbaa)
+    if (raw.length === 9) {
+      const a = parseInt(raw.slice(7, 9), 16) / 255;
+      return { hex: raw.slice(0, 7), alpha: Math.round(a * 100) / 100 };
+    }
+    return { hex: raw, alpha: 1 };
+  }
+  const match = raw.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+  if (!match) return { hex: "", alpha: 1 };
+  const r = parseInt(match[1]);
+  const g = parseInt(match[2]);
+  const b = parseInt(match[3]);
+  const a = match[4] !== undefined ? parseFloat(match[4]) : 1;
+  const hex =
+    "#" + [r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("");
+  return { hex, alpha: Math.round(a * 100) / 100 };
+}
+
+/** Convert hex + alpha to rgba() string */
+export function hexAlphaToRgba(hex: string, alpha: number): string {
+  if (!hex) return "";
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  if (alpha >= 1) return `rgb(${r}, ${g}, ${b})`;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/** Parse a CSS gradient string into its parts */
+export function parseGradient(bg: string): {
+  type: "linear" | "radial";
+  direction: string;
+  stops: Array<{ hex: string; alpha: number }>;
+} | null {
+  // linear-gradient(to bottom, rgba(...), rgba(...))
+  const linearMatch = bg.match(
+    /linear-gradient\(([^,]+),\s*(.+)\)/
+  );
+  if (linearMatch) {
+    const direction = linearMatch[1].trim();
+    const stopsRaw = linearMatch[2];
+    const stops = stopsRaw.split(/,\s*(?=[#rgba])/).map((s) => parseColor(s.trim()));
+    return { type: "linear", direction, stops };
+  }
+  const radialMatch = bg.match(
+    /radial-gradient\(([^,]*),\s*(.+)\)/
+  );
+  if (radialMatch) {
+    const direction = radialMatch[1].trim() || "circle";
+    const stopsRaw = radialMatch[2];
+    const stops = stopsRaw.split(/,\s*(?=[#rgba])/).map((s) => parseColor(s.trim()));
+    return { type: "radial", direction, stops };
+  }
+  return null;
+}
+
 export function parseInlineStyles(cssText: string): Record<string, string> {
   const result: Record<string, string> = {};
   if (!cssText) return result;
@@ -107,6 +169,97 @@ export function ColorInput({
         onBlur={onCommit}
         className="h-7 text-xs font-mono flex-1"
       />
+    </div>
+  );
+}
+
+interface ColorInputWithAlphaProps {
+  label: string;
+  value: string; // computed rgb/rgba/hex value
+  onChange: (rgba: string) => void;
+  onCommit: () => void;
+  onStart?: () => void;
+}
+
+export function ColorInputWithAlpha({
+  label,
+  value,
+  onChange,
+  onCommit,
+  onStart,
+}: ColorInputWithAlphaProps) {
+  const { hex, alpha } = parseColor(value);
+  const displayHex = hex || "#000000";
+  const pct = Math.round(alpha * 100);
+
+  const emitChange = (h: string, a: number) => {
+    onChange(hexAlphaToRgba(h || "#000000", a));
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <Label className="text-xs w-20 shrink-0">{label}</Label>
+        <input
+          type="color"
+          value={displayHex}
+          onInput={(e) => {
+            onStart?.();
+            emitChange((e.target as HTMLInputElement).value, alpha);
+          }}
+          onChange={(e) => {
+            emitChange(e.target.value, alpha);
+            onCommit();
+          }}
+          className="w-7 h-7 rounded border border-border cursor-pointer p-0.5"
+        />
+        <Input
+          value={hex || ""}
+          placeholder="none"
+          onChange={(e) => {
+            onStart?.();
+            const v = e.target.value;
+            if (v.match(/^#[0-9a-fA-F]{6}$/)) {
+              emitChange(v, alpha);
+            } else {
+              onChange(v);
+            }
+          }}
+          onBlur={onCommit}
+          className="h-7 text-xs font-mono flex-1"
+        />
+      </div>
+      {/* Alpha / opacity slider */}
+      <div className="flex items-center gap-2">
+        <Label className="text-xs w-20 shrink-0">Opacity</Label>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          value={pct}
+          onInput={(e) => {
+            onStart?.();
+            const a = parseInt((e.target as HTMLInputElement).value) / 100;
+            emitChange(displayHex, a);
+          }}
+          onMouseUp={onCommit}
+          onTouchEnd={onCommit}
+          className="flex-1 h-1.5 accent-primary"
+        />
+        <Input
+          value={`${pct}%`}
+          onChange={(e) => {
+            onStart?.();
+            const num = parseInt(e.target.value.replace("%", ""));
+            if (!isNaN(num)) {
+              emitChange(displayHex, Math.min(100, Math.max(0, num)) / 100);
+            }
+          }}
+          onBlur={onCommit}
+          className="h-7 w-14 text-xs font-mono text-center"
+        />
+      </div>
     </div>
   );
 }

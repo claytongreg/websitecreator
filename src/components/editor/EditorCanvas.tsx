@@ -105,6 +105,7 @@ const IFRAME_SCRIPT = `
       textShadow: computed.textShadow,
       opacity: computed.opacity,
       boxShadow: computed.boxShadow,
+      background: computed.background,
       __inlineStyle: el.style.cssText,
     };
   }
