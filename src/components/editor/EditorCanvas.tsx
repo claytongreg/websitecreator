@@ -138,7 +138,8 @@ const IFRAME_SCRIPT = `
   // Drag-from-selection state
   var __wc_isDragging = false;
   var __wc_mouseDownInfo = null; // { x, y, el, time }
-  var DRAG_THRESHOLD = 5; // px before drag starts
+  var DRAG_THRESHOLD = 12; // px before drag starts
+  var DRAG_MIN_HOLD_MS = 150; // ms mouse must be held before drag can start
 
   // Hover effect — suppressed during drag and on the selected element
   document.addEventListener('mousemove', function(e) {
@@ -193,7 +194,7 @@ const IFRAME_SCRIPT = `
     if (e.button !== 0) return;
     var el = document.elementFromPoint(e.clientX, e.clientY);
     if (!el || el.id === '__wc_overlay' || el.id === '__wc_selected' || el === document.body || el === document.documentElement) return;
-    __wc_mouseDownInfo = { x: e.clientX, y: e.clientY, el: el };
+    __wc_mouseDownInfo = { x: e.clientX, y: e.clientY, el: el, time: Date.now() };
   }, true);
 
   // Mousemove — detect drag threshold
@@ -201,7 +202,7 @@ const IFRAME_SCRIPT = `
     if (!__wc_mouseDownInfo || __wc_isDragging) return;
     var dx = e.clientX - __wc_mouseDownInfo.x;
     var dy = e.clientY - __wc_mouseDownInfo.y;
-    if (Math.sqrt(dx*dx + dy*dy) >= DRAG_THRESHOLD) {
+    if (Math.sqrt(dx*dx + dy*dy) >= DRAG_THRESHOLD && (Date.now() - __wc_mouseDownInfo.time) >= DRAG_MIN_HOLD_MS) {
       var el = __wc_mouseDownInfo.el;
       // If not already selected, select it first
       if (!__wc_selectedEl || __wc_selectedEl !== el) {
