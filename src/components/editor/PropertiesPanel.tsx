@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEditorStore } from "@/lib/editor/store";
 import { BackgroundSection } from "./properties/BackgroundSection";
 import { TypographySection } from "./properties/TypographySection";
@@ -118,7 +117,7 @@ export function PropertiesPanel({ iframeRef }: PropertiesPanelProps) {
       </div>
 
       {/* Sections */}
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-y-auto min-h-0">
         {tagName.toLowerCase() === "a" && (
           <LinkSection
             attributes={selectedElement.attributes}
@@ -131,7 +130,7 @@ export function PropertiesPanel({ iframeRef }: PropertiesPanelProps) {
         <BorderSection {...sectionProps} />
         <SizingSection {...sectionProps} />
         <EffectsSection {...sectionProps} />
-      </ScrollArea>
+      </div>
     </div>
   );
 }
