@@ -15,7 +15,7 @@ const geminiProvider: AIProvider = {
       capabilities: ["text", "code"],
       inputCostPer1k: 0.01,
       outputCostPer1k: 0.04,
-      maxTokens: 8192,
+      maxTokens: 16384,
     },
     {
       id: "gemini-2.0-pro",
@@ -24,7 +24,7 @@ const geminiProvider: AIProvider = {
       capabilities: ["text", "code"],
       inputCostPer1k: 0.125,
       outputCostPer1k: 0.5,
-      maxTokens: 8192,
+      maxTokens: 16384,
     },
     {
       id: "imagen-4.0-generate-001",

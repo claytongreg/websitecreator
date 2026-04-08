@@ -24,26 +24,27 @@ Rules:
     const { generateText, estimateCost, getModel } = await import("@/lib/ai");
     const modelInfo = getModel(model);
 
-    // Groq free tier has a 12K TPM limit — truncate HTML to fit
-    let html_input = currentHtml ?? "";
-    let maxTokens = 8192;
+    // Groq free tier has a 12K TPM limit — reject if page is too large
+    const htmlInput = currentHtml ?? "";
+    let maxTokens = modelInfo?.maxTokens ?? 8192;
     if (modelInfo?.provider === "groq") {
       const TOKEN_BUDGET = 12000;
       const RESERVED_OUTPUT = 4096;
-      const overheadChars = systemPrompt.length + 300 + (prompt?.length ?? 0) +
-        (selectedElement?.outerHTML?.length ?? 0);
-      const overheadTokens = Math.ceil(overheadChars / 4);
-      const maxInputTokens = TOKEN_BUDGET - RESERVED_OUTPUT - overheadTokens;
-      const maxHtmlChars = Math.max(2000, maxInputTokens * 4);
-      if (html_input.length > maxHtmlChars) {
-        html_input = html_input.slice(0, maxHtmlChars) + "\n<!-- ... truncated for token limit -->\n</html>";
+      const totalInputChars = systemPrompt.length + htmlInput.length + 300 +
+        (prompt?.length ?? 0) + (selectedElement?.outerHTML?.length ?? 0);
+      const estimatedTotal = Math.ceil(totalInputChars / 4) + RESERVED_OUTPUT;
+      if (estimatedTotal > TOKEN_BUDGET) {
+        return NextResponse.json(
+          { error: "Page is too large for this free model. Switch to GPT-4o, Claude, or Gemini for larger pages." },
+          { status: 400 }
+        );
       }
       maxTokens = RESERVED_OUTPUT;
     }
 
     const userPrompt = selectedElement
-      ? `Current page HTML:\n\`\`\`html\n${html_input}\n\`\`\`\n\nSelected element (CSS path: ${selectedElement.path}):\n\`\`\`html\n${selectedElement.outerHTML}\n\`\`\`\n\nUser request: "${prompt}"\n\nModify the HTML to fulfill this request. Focus changes on the selected element. Return the complete modified HTML document.`
-      : `Current page HTML:\n\`\`\`html\n${html_input}\n\`\`\`\n\nUser request: "${prompt}"\n\nModify the HTML to fulfill this request. Return the complete modified HTML document.`;
+      ? `Current page HTML:\n\`\`\`html\n${htmlInput}\n\`\`\`\n\nSelected element (CSS path: ${selectedElement.path}):\n\`\`\`html\n${selectedElement.outerHTML}\n\`\`\`\n\nUser request: "${prompt}"\n\nModify the HTML to fulfill this request. Focus changes on the selected element. Return the complete modified HTML document.`
+      : `Current page HTML:\n\`\`\`html\n${htmlInput}\n\`\`\`\n\nUser request: "${prompt}"\n\nModify the HTML to fulfill this request. Return the complete modified HTML document.`;
 
     let result = "";
     for await (const chunk of generateText(userPrompt, {

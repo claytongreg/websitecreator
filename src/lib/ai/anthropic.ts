@@ -15,7 +15,7 @@ const anthropicProvider: AIProvider = {
       capabilities: ["text", "code"],
       inputCostPer1k: 0.3,
       outputCostPer1k: 1.5,
-      maxTokens: 8192,
+      maxTokens: 16384,
     },
     {
       id: "claude-haiku-4-5-20251001",
@@ -24,7 +24,7 @@ const anthropicProvider: AIProvider = {
       capabilities: ["text", "code"],
       inputCostPer1k: 0.08,
       outputCostPer1k: 0.4,
-      maxTokens: 8192,
+      maxTokens: 16384,
     },
   ],
 
