@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModelSelector } from "@/components/ui/ModelSelector";
@@ -9,7 +9,6 @@ import { CostReceipt } from "./CostReceipt";
 import { Loader2, Send, Undo2, Redo2, ImagePlus, Camera, X } from "lucide-react";
 import { PhotoWidget } from "./PhotoWidget";
 import { toast } from "sonner";
-import html2canvas from "html2canvas";
 import { replaceElementByPath } from "@/lib/editor/element-utils";
 
 interface Props {
@@ -54,8 +53,6 @@ function buildPageSkeleton(fullHtml: string): string | null {
 export function AIPromptBar({ siteId }: Props) {
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState("llama-3.3-70b-versatile");
-  const [screenshot, setScreenshot] = useState<string | null>(null);
-  const [isCapturing, setIsCapturing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -71,31 +68,11 @@ export function AIPromptBar({ siteId }: Props) {
     canRedo,
     isPhotoWidgetOpen,
     setPhotoWidgetOpen,
+    screenshotMode,
+    setScreenshotMode,
+    screenshotDataUrl: screenshot,
+    setScreenshotDataUrl: setScreenshot,
   } = useEditorStore();
-
-  const captureScreenshot = useCallback(async () => {
-    setIsCapturing(true);
-    try {
-      const iframe = document.querySelector("iframe") as HTMLIFrameElement | null;
-      if (!iframe?.contentDocument?.body) {
-        toast.error("Could not access the canvas");
-        return;
-      }
-      const canvas = await html2canvas(iframe.contentDocument.body, {
-        useCORS: true,
-        scale: 0.5,
-        logging: false,
-      });
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
-      setScreenshot(dataUrl);
-      toast.success("Screenshot captured");
-    } catch (err) {
-      console.error("Screenshot capture failed:", err);
-      toast.error("Failed to capture screenshot");
-    } finally {
-      setIsCapturing(false);
-    }
-  }, []);
 
   const handleSubmit = async () => {
     if (!prompt.trim() || isAiLoading) return;
@@ -240,17 +217,13 @@ export function AIPromptBar({ siteId }: Props) {
 
         {/* Screenshot capture */}
         <Button
-          variant={screenshot ? "default" : "outline"}
+          variant={screenshot || screenshotMode ? "default" : "outline"}
           size="sm"
-          onClick={captureScreenshot}
-          disabled={isCapturing || isAiLoading}
+          onClick={() => setScreenshotMode(!screenshotMode)}
+          disabled={isAiLoading}
           title="Capture screenshot to send with prompt"
         >
-          {isCapturing ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Camera className="w-4 h-4" />
-          )}
+          <Camera className="w-4 h-4" />
         </Button>
 
         {/* Prompt input with optional screenshot preview */}

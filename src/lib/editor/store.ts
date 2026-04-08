@@ -36,6 +36,10 @@ interface EditorState {
   // Photo widget
   isPhotoWidgetOpen: boolean;
 
+  // Screenshot capture
+  screenshotMode: boolean;
+  screenshotDataUrl: string | null;
+
   // Style editing (properties panel)
   styleChangeBeforeHtml: string | null;
   _skipIframeRewrite: boolean;
@@ -60,6 +64,8 @@ interface EditorState {
   addCost: (cents: number) => void;
   addEdit: (edit: SessionEdit) => void;
   setPhotoWidgetOpen: (open: boolean) => void;
+  setScreenshotMode: (on: boolean) => void;
+  setScreenshotDataUrl: (url: string | null) => void;
   beginStyleChange: () => void;
   commitStyleChange: (afterHtml: string, elementPath: string, updatedComputedStyle?: Record<string, string>) => void;
 }
@@ -77,6 +83,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   sessionCostCents: 0,
   sessionEdits: [],
   isPhotoWidgetOpen: false,
+  screenshotMode: false,
+  screenshotDataUrl: null,
   styleChangeBeforeHtml: null,
   _skipIframeRewrite: false,
 
@@ -148,6 +156,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       sessionEdits: [...s.sessionEdits, edit],
     })),
   setPhotoWidgetOpen: (open) => set({ isPhotoWidgetOpen: open }),
+  setScreenshotMode: (on) => set({ screenshotMode: on }),
+  setScreenshotDataUrl: (url) => set({ screenshotDataUrl: url }),
 
   beginStyleChange: () => {
     const { styleChangeBeforeHtml, html } = get();

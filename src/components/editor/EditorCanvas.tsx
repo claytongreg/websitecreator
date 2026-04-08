@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef as useReactRef, useState } from "react";
 import { useEditorStore } from "@/lib/editor/store";
+import html2canvas from "html2canvas";
+import { toast } from "sonner";
 import { generateThemeCss, FONT_OPTIONS } from "@/lib/editor/theme-css";
 import type { ElementSelection } from "@/types";
 
@@ -133,10 +135,22 @@ const IFRAME_SCRIPT = `
   selectedOverlay.style.cssText = 'position:fixed;pointer-events:none;border:2px solid #f97316;background:rgba(249,115,22,0.06);z-index:99998;display:none;';
   document.body.appendChild(selectedOverlay);
 
-  // Hover effect
+  // Drag-from-selection state
+  var __wc_isDragging = false;
+  var __wc_mouseDownInfo = null; // { x, y, el, time }
+  var DRAG_THRESHOLD = 5; // px before drag starts
+
+  // Hover effect — suppressed during drag and on the selected element
   document.addEventListener('mousemove', function(e) {
+    if (__wc_isDragging) { overlay.style.display = 'none'; return; }
+    if (__wc_mouseDownInfo) return; // potential drag in progress, skip hover
     var el = document.elementFromPoint(e.clientX, e.clientY);
     if (!el || el.id === '__wc_overlay' || el.id === '__wc_selected' || el === document.body || el === document.documentElement) {
+      overlay.style.display = 'none';
+      return;
+    }
+    // Don't show hover highlight on the already-selected element
+    if (__wc_selectedEl && el === __wc_selectedEl) {
       overlay.style.display = 'none';
       return;
     }
@@ -148,30 +162,20 @@ const IFRAME_SCRIPT = `
     overlay.style.height = rect.height + 'px';
   });
 
-  // Click to select
-  document.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    var el = document.elementFromPoint(e.clientX, e.clientY);
-    if (!el || el.id === '__wc_overlay' || el.id === '__wc_selected' || el === document.body || el === document.documentElement) return;
-
+  // Helper: select an element and notify parent
+  function selectAndNotify(el) {
     __wc_selectedEl = el;
-
     var rect = el.getBoundingClientRect();
     selectedOverlay.style.display = 'block';
     selectedOverlay.style.top = rect.top + 'px';
     selectedOverlay.style.left = rect.left + 'px';
     selectedOverlay.style.width = rect.width + 'px';
     selectedOverlay.style.height = rect.height + 'px';
-
-    // Get attributes
     var attrs = {};
     for (var i = 0; i < el.attributes.length; i++) {
       attrs[el.attributes[i].name] = el.attributes[i].value;
     }
-
-    var selection = {
+    window.parent.postMessage({ type: 'wc_select', selection: {
       path: getElementPath(el),
       tagName: el.tagName.toLowerCase(),
       textContent: el.childNodes.length === 1 && el.childNodes[0].nodeType === 3 ? el.textContent : undefined,
@@ -179,10 +183,162 @@ const IFRAME_SCRIPT = `
       computedStyle: getStyles(el),
       boundingRect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
       outerHTML: el.outerHTML.substring(0, 2000),
-    };
+    }}, '*');
+  }
 
-    window.parent.postMessage({ type: 'wc_select', selection: selection }, '*');
+  // Mousedown — start potential drag
+  document.addEventListener('mousedown', function(e) {
+    if (e.button !== 0) return;
+    var el = document.elementFromPoint(e.clientX, e.clientY);
+    if (!el || el.id === '__wc_overlay' || el.id === '__wc_selected' || el === document.body || el === document.documentElement) return;
+    __wc_mouseDownInfo = { x: e.clientX, y: e.clientY, el: el };
   }, true);
+
+  // Mousemove — detect drag threshold
+  document.addEventListener('mousemove', function(e) {
+    if (!__wc_mouseDownInfo || __wc_isDragging) return;
+    var dx = e.clientX - __wc_mouseDownInfo.x;
+    var dy = e.clientY - __wc_mouseDownInfo.y;
+    if (Math.sqrt(dx*dx + dy*dy) >= DRAG_THRESHOLD) {
+      var el = __wc_mouseDownInfo.el;
+      // If not already selected, select it first
+      if (!__wc_selectedEl || __wc_selectedEl !== el) {
+        selectAndNotify(el);
+      }
+      startDragMode(__wc_selectedEl, e.clientX, e.clientY);
+      __wc_mouseDownInfo = null;
+    }
+  }, true);
+
+  // Mouseup — if no drag started, treat as click-to-select
+  document.addEventListener('mouseup', function(e) {
+    if (__wc_isDragging) return;
+    if (!__wc_mouseDownInfo) return;
+    var el = __wc_mouseDownInfo.el;
+    __wc_mouseDownInfo = null;
+    if (!el || el.id === '__wc_overlay' || el.id === '__wc_selected' || el === document.body || el === document.documentElement) return;
+    selectAndNotify(el);
+  }, true);
+
+  // Click — prevent default, selection handled by mouseup
+  document.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+
+  // Reusable drag-to-move mode (called from click-drag or toolbar button)
+  function startDragMode(dragEl, startX, startY) {
+    __wc_isDragging = true;
+    var dragGhost = null;
+    var dropIndicator = null;
+    var dropTarget = null;
+    var dragActive = true;
+
+    // Hide overlays during drag
+    overlay.style.display = 'none';
+    selectedOverlay.style.display = 'none';
+
+    // Create ghost
+    dragGhost = dragEl.cloneNode(true);
+    dragGhost.id = '__wc_drag_ghost';
+    dragGhost.style.cssText = 'position:fixed;pointer-events:none;opacity:0.5;z-index:100001;width:' + dragEl.offsetWidth + 'px;max-height:80px;overflow:hidden;border:2px solid #3b82f6;border-radius:4px;background:#fff;transform:translate(-50%,-50%);';
+    if (startX !== null) {
+      dragGhost.style.left = startX + 'px';
+      dragGhost.style.top = startY + 'px';
+    }
+    document.body.appendChild(dragGhost);
+
+    // Create drop indicator line
+    dropIndicator = document.createElement('div');
+    dropIndicator.id = '__wc_drop_indicator';
+    dropIndicator.style.cssText = 'position:fixed;pointer-events:none;z-index:100000;height:3px;background:#3b82f6;border-radius:2px;display:none;transition:top 0.08s ease,left 0.08s ease,width 0.08s ease;';
+    document.body.appendChild(dropIndicator);
+
+    function findDropPosition(x, y) {
+      var target = document.elementFromPoint(x, y);
+      if (!target || target.id === '__wc_drag_ghost' || target.id === '__wc_drop_indicator' || target.id === '__wc_overlay' || target.id === '__wc_selected') return null;
+      if (dragEl.contains(target)) return null;
+      var container = target;
+      while (container && container !== document.body && container !== document.documentElement) {
+        var parent = container.parentElement;
+        if (parent && parent !== document.body && parent !== document.documentElement) {
+          var rect = container.getBoundingClientRect();
+          var midY = rect.top + rect.height / 2;
+          if (y < midY) {
+            return { parent: parent, ref: container, side: 'before' };
+          } else {
+            return { parent: parent, ref: container.nextElementSibling, side: 'after', afterEl: container };
+          }
+        }
+        container = parent;
+      }
+      return null;
+    }
+
+    function onDragMove(ev) {
+      if (!dragActive) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      if (dragGhost) {
+        dragGhost.style.left = ev.clientX + 'px';
+        dragGhost.style.top = ev.clientY + 'px';
+      }
+      if (dragGhost) dragGhost.style.display = 'none';
+      dropTarget = findDropPosition(ev.clientX, ev.clientY);
+      if (dragGhost) dragGhost.style.display = '';
+      if (dropTarget && dropIndicator) {
+        var refEl = dropTarget.side === 'before' ? dropTarget.ref : (dropTarget.afterEl || null);
+        if (refEl) {
+          var rr = refEl.getBoundingClientRect();
+          var indicatorY = dropTarget.side === 'before' ? rr.top - 2 : rr.bottom + 1;
+          dropIndicator.style.display = 'block';
+          dropIndicator.style.top = indicatorY + 'px';
+          dropIndicator.style.left = rr.left + 'px';
+          dropIndicator.style.width = rr.width + 'px';
+        } else {
+          var parentRect = dropTarget.parent.getBoundingClientRect();
+          var lastChild = dropTarget.parent.lastElementChild;
+          var botY = lastChild ? lastChild.getBoundingClientRect().bottom + 1 : parentRect.bottom - 2;
+          dropIndicator.style.display = 'block';
+          dropIndicator.style.top = botY + 'px';
+          dropIndicator.style.left = parentRect.left + 'px';
+          dropIndicator.style.width = parentRect.width + 'px';
+        }
+      } else if (dropIndicator) {
+        dropIndicator.style.display = 'none';
+      }
+    }
+
+    function onDragUp(ev) {
+      if (!dragActive) return;
+      dragActive = false;
+      __wc_isDragging = false;
+      ev.preventDefault();
+      ev.stopPropagation();
+      document.removeEventListener('mousemove', onDragMove, true);
+      document.removeEventListener('mouseup', onDragUp, true);
+      if (dragGhost && dragGhost.parentElement) dragGhost.remove();
+      if (dropIndicator && dropIndicator.parentElement) dropIndicator.remove();
+      if (dropTarget && dropTarget.parent) {
+        try {
+          dropTarget.parent.insertBefore(dragEl, dropTarget.ref || null);
+        } catch(ex) {}
+      }
+      __wc_selectedEl = dragEl;
+      sendSelectionRect();
+      selectedOverlay.style.display = 'block';
+      window.parent.postMessage({
+        type: 'wc_html_changed',
+        newHTML: getCleanHTML(),
+        movedPath: getElementPath(dragEl),
+      }, '*');
+      document.body.style.cursor = '';
+    }
+
+    document.body.style.cursor = 'grabbing';
+    document.addEventListener('mousemove', onDragMove, true);
+    document.addEventListener('mouseup', onDragUp, true);
+  }
 
   // Check if an element is editable (contains some text content)
   function isTextEditable(el) {
@@ -320,134 +476,9 @@ const IFRAME_SCRIPT = `
         computedStyle: getStyles(__wc_selectedEl),
       }, '*');
     }
-    // Start drag-to-move mode
+    // Start drag-to-move mode (from toolbar button)
     if (e.data.type === 'wc_start_drag' && __wc_selectedEl) {
-      var dragEl = __wc_selectedEl;
-      var dragGhost = null;
-      var dropIndicator = null;
-      var dropTarget = null; // { parent, ref } — insert before ref (null = append)
-      var dragActive = true;
-
-      // Hide toolbar overlays during drag
-      overlay.style.display = 'none';
-      selectedOverlay.style.display = 'none';
-
-      // Create ghost (semi-transparent clone following cursor)
-      dragGhost = dragEl.cloneNode(true);
-      dragGhost.id = '__wc_drag_ghost';
-      dragGhost.style.cssText = 'position:fixed;pointer-events:none;opacity:0.5;z-index:100001;width:' + dragEl.offsetWidth + 'px;max-height:80px;overflow:hidden;border:2px solid #3b82f6;border-radius:4px;background:#fff;transform:translate(-50%,-50%);';
-      document.body.appendChild(dragGhost);
-
-      // Create drop indicator line
-      dropIndicator = document.createElement('div');
-      dropIndicator.id = '__wc_drop_indicator';
-      dropIndicator.style.cssText = 'position:fixed;pointer-events:none;z-index:100000;height:3px;background:#3b82f6;border-radius:2px;display:none;transition:top 0.08s ease,left 0.08s ease,width 0.08s ease;';
-      document.body.appendChild(dropIndicator);
-
-      function findDropPosition(x, y) {
-        var target = document.elementFromPoint(x, y);
-        if (!target || target.id === '__wc_drag_ghost' || target.id === '__wc_drop_indicator' || target.id === '__wc_overlay' || target.id === '__wc_selected') return null;
-        // Don't drop inside the dragged element itself
-        if (dragEl.contains(target)) return null;
-        // Walk up to find a suitable container
-        var container = target;
-        while (container && container !== document.body && container !== document.documentElement) {
-          // Check if this is a direct child of a container-like element
-          var parent = container.parentElement;
-          if (parent && parent !== document.body && parent !== document.documentElement) {
-            var rect = container.getBoundingClientRect();
-            var midY = rect.top + rect.height / 2;
-            if (y < midY) {
-              return { parent: parent, ref: container, side: 'before' };
-            } else {
-              return { parent: parent, ref: container.nextElementSibling, side: 'after', afterEl: container };
-            }
-          }
-          container = parent;
-        }
-        return null;
-      }
-
-      function onDragMove(ev) {
-        if (!dragActive) return;
-        ev.preventDefault();
-        ev.stopPropagation();
-        // Move ghost
-        if (dragGhost) {
-          dragGhost.style.left = ev.clientX + 'px';
-          dragGhost.style.top = ev.clientY + 'px';
-        }
-        // Find drop position
-        // Temporarily hide ghost for elementFromPoint
-        if (dragGhost) dragGhost.style.display = 'none';
-        dropTarget = findDropPosition(ev.clientX, ev.clientY);
-        if (dragGhost) dragGhost.style.display = '';
-        // Show indicator
-        if (dropTarget && dropIndicator) {
-          var refEl = dropTarget.side === 'before' ? dropTarget.ref : (dropTarget.afterEl || null);
-          if (refEl) {
-            var rr = refEl.getBoundingClientRect();
-            var indicatorY = dropTarget.side === 'before' ? rr.top - 2 : rr.bottom + 1;
-            dropIndicator.style.display = 'block';
-            dropIndicator.style.top = indicatorY + 'px';
-            dropIndicator.style.left = rr.left + 'px';
-            dropIndicator.style.width = rr.width + 'px';
-          } else {
-            // Appending to end of parent
-            var parentRect = dropTarget.parent.getBoundingClientRect();
-            var lastChild = dropTarget.parent.lastElementChild;
-            var botY = lastChild ? lastChild.getBoundingClientRect().bottom + 1 : parentRect.bottom - 2;
-            dropIndicator.style.display = 'block';
-            dropIndicator.style.top = botY + 'px';
-            dropIndicator.style.left = parentRect.left + 'px';
-            dropIndicator.style.width = parentRect.width + 'px';
-          }
-        } else if (dropIndicator) {
-          dropIndicator.style.display = 'none';
-        }
-      }
-
-      function onDragUp(ev) {
-        if (!dragActive) return;
-        dragActive = false;
-        ev.preventDefault();
-        ev.stopPropagation();
-        document.removeEventListener('mousemove', onDragMove, true);
-        document.removeEventListener('mouseup', onDragUp, true);
-        // Cleanup ghost and indicator
-        if (dragGhost && dragGhost.parentElement) dragGhost.remove();
-        if (dropIndicator && dropIndicator.parentElement) dropIndicator.remove();
-        // Perform the move
-        if (dropTarget && dropTarget.parent) {
-          try {
-            dropTarget.parent.insertBefore(dragEl, dropTarget.ref || null);
-          } catch(ex) { /* ignore invalid moves */ }
-        }
-        // Re-select and update
-        __wc_selectedEl = dragEl;
-        sendSelectionRect();
-        selectedOverlay.style.display = 'block';
-        window.parent.postMessage({
-          type: 'wc_html_changed',
-          newHTML: getCleanHTML(),
-          movedPath: getElementPath(dragEl),
-        }, '*');
-        // Reset cursor
-        document.body.style.cursor = '';
-      }
-
-      // Cancel normal click/select behavior during drag
-      function onDragClick(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        document.removeEventListener('click', onDragClick, true);
-      }
-
-      document.body.style.cursor = 'grabbing';
-      document.addEventListener('mousemove', onDragMove, true);
-      document.addEventListener('mouseup', onDragUp, true);
-      // Eat the next click so it doesn't re-select
-      setTimeout(function() { document.addEventListener('click', onDragClick, true); }, 0);
+      startDragMode(__wc_selectedEl, null, null);
     }
     // Resize element width
     if (e.data.type === 'wc_resize' && __wc_selectedEl) {
@@ -628,13 +659,93 @@ export function EditorCanvas({ iframeRef }: EditorCanvasProps) {
     );
   };
 
+  // ── Screenshot overlay ──
+  const { screenshotMode, setScreenshotMode, setScreenshotDataUrl } = useEditorStore();
+  const overlayRef = useReactRef<HTMLDivElement>(null);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+  const [dragEnd, setDragEnd] = useState<{ x: number; y: number } | null>(null);
+
+  const finishCapture = useCallback(async (region?: { x: number; y: number; w: number; h: number }) => {
+    setScreenshotMode(false);
+    setDragStart(null);
+    setDragEnd(null);
+
+    const iframe = iframeRef.current;
+    if (!iframe?.contentDocument?.body) {
+      toast.error("Could not access the canvas");
+      return;
+    }
+
+    try {
+      const full = await html2canvas(iframe.contentDocument.body, {
+        useCORS: true,
+        scale: 0.5,
+        logging: false,
+        height: iframe.clientHeight,
+        windowHeight: iframe.clientHeight,
+      });
+
+      let resultCanvas: HTMLCanvasElement;
+
+      if (region && region.w > 10 && region.h > 10) {
+        // Crop to the dragged region (coords are relative to iframe element)
+        const scaleX = full.width / iframe.clientWidth;
+        const scaleY = full.height / iframe.clientHeight;
+        resultCanvas = document.createElement("canvas");
+        resultCanvas.width = region.w * scaleX;
+        resultCanvas.height = region.h * scaleY;
+        const ctx = resultCanvas.getContext("2d")!;
+        ctx.drawImage(
+          full,
+          region.x * scaleX, region.y * scaleY,
+          region.w * scaleX, region.h * scaleY,
+          0, 0,
+          resultCanvas.width, resultCanvas.height,
+        );
+      } else {
+        resultCanvas = full;
+      }
+
+      const dataUrl = resultCanvas.toDataURL("image/jpeg", 0.7);
+      setScreenshotDataUrl(dataUrl);
+      toast.success("Screenshot captured");
+    } catch (err) {
+      console.error("Screenshot capture failed:", err);
+      toast.error("Failed to capture screenshot");
+    }
+  }, [iframeRef, setScreenshotMode, setScreenshotDataUrl]);
+
+  // Cancel on Escape
+  useEffect(() => {
+    if (!screenshotMode) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setScreenshotMode(false);
+        setDragStart(null);
+        setDragEnd(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [screenshotMode, setScreenshotMode]);
+
+  // Compute selection rect for display
+  const selectionRect = dragStart && dragEnd
+    ? {
+        left: Math.min(dragStart.x, dragEnd.x),
+        top: Math.min(dragStart.y, dragEnd.y),
+        width: Math.abs(dragEnd.x - dragStart.x),
+        height: Math.abs(dragEnd.y - dragStart.y),
+      }
+    : null;
+
   return (
     <div
       className="flex-1 bg-muted overflow-auto p-4"
       onClick={handleContainerClick}
     >
       <div
-        className="mx-auto bg-white shadow-lg"
+        className="mx-auto bg-white shadow-lg relative"
         style={{ width: "100%", maxWidth: "1280px" }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -645,6 +756,61 @@ export function EditorCanvas({ iframeRef }: EditorCanvasProps) {
           sandbox="allow-scripts allow-same-origin"
           title="Website preview"
         />
+
+        {/* Screenshot capture overlay */}
+        {screenshotMode && (
+          <div
+            ref={overlayRef}
+            className="absolute inset-0 z-50"
+            style={{ cursor: "crosshair", backgroundColor: "rgba(0,0,0,0.15)" }}
+            onMouseDown={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setDragStart({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+              setDragEnd(null);
+            }}
+            onMouseMove={(e) => {
+              if (!dragStart) return;
+              const rect = e.currentTarget.getBoundingClientRect();
+              setDragEnd({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+            }}
+            onMouseUp={(e) => {
+              if (dragStart && dragEnd) {
+                const w = Math.abs(dragEnd.x - dragStart.x);
+                const h = Math.abs(dragEnd.y - dragStart.y);
+                if (w > 10 && h > 10) {
+                  finishCapture({
+                    x: Math.min(dragStart.x, dragEnd.x),
+                    y: Math.min(dragStart.y, dragEnd.y),
+                    w,
+                    h,
+                  });
+                  return;
+                }
+              }
+              // Click (no meaningful drag) → capture full preview
+              finishCapture();
+            }}
+          >
+            {/* Instruction label */}
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full pointer-events-none select-none">
+              Click to capture full preview, or drag to select a region. Esc to cancel.
+            </div>
+
+            {/* Drag selection rectangle */}
+            {selectionRect && selectionRect.width > 2 && (
+              <div
+                className="absolute border-2 border-white/80 pointer-events-none"
+                style={{
+                  left: selectionRect.left,
+                  top: selectionRect.top,
+                  width: selectionRect.width,
+                  height: selectionRect.height,
+                  boxShadow: "0 0 0 9999px rgba(0,0,0,0.35)",
+                }}
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
