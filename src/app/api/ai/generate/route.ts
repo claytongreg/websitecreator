@@ -19,39 +19,38 @@ Rules:
 - Make the minimum changes necessary to fulfill the request
 - Be creative and make it look professional${screenshot ? "\n- The user has attached a screenshot of the current page for visual reference. Use it to understand the layout and appearance." : ""}`;
 
-  const userPrompt = selectedElement
-    ? `Current page HTML:
-\`\`\`html
-${currentHtml}
-\`\`\`
-
-Selected element (CSS path: ${selectedElement.path}):
-\`\`\`html
-${selectedElement.outerHTML}
-\`\`\`
-
-User request: "${prompt}"
-
-Modify the HTML to fulfill this request. Focus changes on the selected element. Return the complete modified HTML document.`
-    : `Current page HTML:
-\`\`\`html
-${currentHtml}
-\`\`\`
-
-User request: "${prompt}"
-
-Modify the HTML to fulfill this request. Return the complete modified HTML document.`;
-
   try {
     // Dynamic import to trigger provider registration
-    const { generateText, estimateCost } = await import("@/lib/ai");
+    const { generateText, estimateCost, getModel } = await import("@/lib/ai");
+    const modelInfo = getModel(model);
+
+    // Groq free tier has a 12K TPM limit — truncate HTML to fit
+    let html_input = currentHtml ?? "";
+    let maxTokens = 8192;
+    if (modelInfo?.provider === "groq") {
+      const TOKEN_BUDGET = 12000;
+      const RESERVED_OUTPUT = 4096;
+      const overheadChars = systemPrompt.length + 300 + (prompt?.length ?? 0) +
+        (selectedElement?.outerHTML?.length ?? 0);
+      const overheadTokens = Math.ceil(overheadChars / 4);
+      const maxInputTokens = TOKEN_BUDGET - RESERVED_OUTPUT - overheadTokens;
+      const maxHtmlChars = Math.max(2000, maxInputTokens * 4);
+      if (html_input.length > maxHtmlChars) {
+        html_input = html_input.slice(0, maxHtmlChars) + "\n<!-- ... truncated for token limit -->\n</html>";
+      }
+      maxTokens = RESERVED_OUTPUT;
+    }
+
+    const userPrompt = selectedElement
+      ? `Current page HTML:\n\`\`\`html\n${html_input}\n\`\`\`\n\nSelected element (CSS path: ${selectedElement.path}):\n\`\`\`html\n${selectedElement.outerHTML}\n\`\`\`\n\nUser request: "${prompt}"\n\nModify the HTML to fulfill this request. Focus changes on the selected element. Return the complete modified HTML document.`
+      : `Current page HTML:\n\`\`\`html\n${html_input}\n\`\`\`\n\nUser request: "${prompt}"\n\nModify the HTML to fulfill this request. Return the complete modified HTML document.`;
 
     let result = "";
     for await (const chunk of generateText(userPrompt, {
       model,
       systemPrompt,
       temperature: 0.3,
-      maxTokens: 8192,
+      maxTokens,
       ...(screenshot ? { images: [screenshot] } : {}),
     })) {
       result += chunk;
@@ -84,8 +83,6 @@ Modify the HTML to fulfill this request. Return the complete modified HTML docum
       const userId = site?.userId ?? (await db.user.findFirst())?.id;
 
       if (userId) {
-        const { getModel } = await import("@/lib/ai");
-        const modelInfo = getModel(model);
         await db.usageRecord.create({
           data: {
             userId,
