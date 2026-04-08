@@ -14,7 +14,7 @@ import { PropertiesPanel } from "@/components/editor/PropertiesPanel";
 import { AddContentPanel } from "@/components/editor/AddContentPanel";
 import { generateThemeCss, DEFAULT_THEME } from "@/lib/editor/theme-css";
 import type { ThemeSettings } from "@/types";
-import { ArrowLeft, Save, Eye, Code, Palette } from "lucide-react";
+import { ArrowLeft, Save, Eye, Code, Palette, Undo2, Redo2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface SiteData {
@@ -32,10 +32,50 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [showCode, setShowCode] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { html, setHtml, setCss, theme, setTheme, showThemePanel, setShowThemePanel, addEdit } = useEditorStore();
+  const { html, setHtml, setCss, theme, setTheme, showThemePanel, setShowThemePanel, addEdit, undo, redo } = useEditorStore();
+  const canUndo = useEditorStore((s) => s.historyIndex >= 0);
+  const canRedo = useEditorStore((s) => s.historyIndex < s.history.length - 1);
   const selectedElement = useEditorStore((s) => s.selectedElement);
   const codeRef = useRef<HTMLTextAreaElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        useEditorStore.getState().undo();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && e.shiftKey) {
+        e.preventDefault();
+        useEditorStore.getState().redo();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "y") {
+        e.preventDefault();
+        useEditorStore.getState().redo();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // Show undo toast after actions
+  useEffect(() => {
+    const unsub = useEditorStore.subscribe(
+      (state, prevState) => {
+        if (state.historyIndex > prevState.historyIndex && state.historyIndex >= 0) {
+          toast("Action applied", {
+            action: {
+              label: "Undo",
+              onClick: () => useEditorStore.getState().undo(),
+            },
+            duration: 3000,
+          });
+        }
+      }
+    );
+    return unsub;
+  }, []);
 
   // Seed session cost from site generation
   useEffect(() => {
@@ -141,6 +181,25 @@ export default function EditorPage() {
           <span className="text-xs text-muted-foreground">
             / {pageSlug}
           </span>
+          <div className="w-px h-5 bg-border mx-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={undo}
+            disabled={!canUndo}
+            title="Undo (Ctrl+Z)"
+          >
+            <Undo2 className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={redo}
+            disabled={!canRedo}
+            title="Redo (Ctrl+Shift+Z)"
+          >
+            <Redo2 className="w-4 h-4" />
+          </Button>
           <div className="w-px h-5 bg-border mx-1" />
           <AddContentPanel iframeRef={iframeRef} />
         </div>

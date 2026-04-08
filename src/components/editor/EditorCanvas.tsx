@@ -149,11 +149,13 @@ const IFRAME_SCRIPT = `
       overlay.style.display = 'none';
       return;
     }
-    // Don't show hover highlight on the already-selected element
-    if (__wc_selectedEl && el === __wc_selectedEl) {
+    // Don't show hover highlight on the already-selected element — show grab cursor instead
+    if (__wc_selectedEl && (__wc_selectedEl === el || __wc_selectedEl.contains(el))) {
       overlay.style.display = 'none';
+      document.body.style.cursor = 'grab';
       return;
     }
+    document.body.style.cursor = '';
     var rect = el.getBoundingClientRect();
     overlay.style.display = 'block';
     overlay.style.top = rect.top + 'px';
@@ -406,6 +408,7 @@ const IFRAME_SCRIPT = `
     if (e.data.type === 'wc_deselect') {
       __wc_selectedEl = null;
       selectedOverlay.style.display = 'none';
+      document.body.style.cursor = '';
     }
     // Trigger inline text editing from toolbar button
     if (e.data.type === 'wc_trigger_edit' && __wc_selectedEl) {
