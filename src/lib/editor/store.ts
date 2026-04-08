@@ -38,6 +38,7 @@ interface EditorState {
 
   // Style editing (properties panel)
   styleChangeBeforeHtml: string | null;
+  _skipIframeRewrite: boolean;
 
   // Actions
   setHtml: (html: string) => void;
@@ -77,6 +78,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   sessionEdits: [],
   isPhotoWidgetOpen: false,
   styleChangeBeforeHtml: null,
+  _skipIframeRewrite: false,
 
   setHtml: (html) => set({ html }),
   setCss: (css) => set({ css }),
@@ -175,6 +177,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       historyIndex: newHistory.length - 1,
       html: afterHtml,
       styleChangeBeforeHtml: null,
+      _skipIframeRewrite: true,
     };
     // Preserve selection but update computedStyle if provided
     if (selectedElement && updatedComputedStyle) {

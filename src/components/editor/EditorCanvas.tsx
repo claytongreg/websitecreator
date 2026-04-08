@@ -98,6 +98,9 @@ const IFRAME_SCRIPT = `
       maxWidth: computed.maxWidth,
       minHeight: computed.minHeight,
       maxHeight: computed.maxHeight,
+      fontStyle: computed.fontStyle,
+      textDecorationLine: computed.textDecorationLine,
+      textShadow: computed.textShadow,
       opacity: computed.opacity,
       boxShadow: computed.boxShadow,
       __inlineStyle: el.style.cssText,
@@ -457,8 +460,13 @@ export function EditorCanvas({ iframeRef }: EditorCanvasProps) {
     }
   }, [html, iframeRef]);
 
-  // Rewrite iframe when html changes
+  // Rewrite iframe when html changes (skip if change came from style commit)
   useEffect(() => {
+    const skip = useEditorStore.getState()._skipIframeRewrite;
+    if (skip) {
+      useEditorStore.setState({ _skipIframeRewrite: false });
+      return;
+    }
     updateIframeHtml();
   }, [updateIframeHtml]);
 
