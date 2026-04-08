@@ -26,7 +26,7 @@ export default function NewSitePage() {
   const [siteName, setSiteName] = useState("");
   const [styleOptions, setStyleOptions] = useState<StyleOption[]>([]);
   const [chosenStyle, setChosenStyle] = useState<StyleOption | null>(null);
-  const [selectedModel, setSelectedModel] = useState("llama-3.3-70b-versatile");
+  const [selectedModel, setSelectedModel] = useState("claude-opus-4-20250514");
 
   const steps: Step[] = ["inspiration", "description", "style", "generating"];
   const currentIndex = steps.indexOf(step);

@@ -61,13 +61,19 @@ export const MODELS: ModelOption[] = [
   { id: "codestral-latest", name: "Codestral", provider: "Mistral", tier: "free", inputCostPer1k: 0, outputCostPer1k: 0 },
   // Budget (text) — rates from src/lib/ai/*.ts
   { id: "gpt-4o-mini", name: "GPT-4o Mini", provider: "OpenAI", tier: "budget", inputCostPer1k: 0.015, outputCostPer1k: 0.06 },
+  { id: "gpt-4.1-mini", name: "GPT-4.1 Mini", provider: "OpenAI", tier: "budget", inputCostPer1k: 0.04, outputCostPer1k: 0.16 },
   { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", provider: "Google", tier: "budget", inputCostPer1k: 0.01, outputCostPer1k: 0.04 },
+  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "Google", tier: "budget", inputCostPer1k: 0.015, outputCostPer1k: 0.06 },
   { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5", provider: "Anthropic", tier: "budget", inputCostPer1k: 0.08, outputCostPer1k: 0.4 },
   // Standard
   { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI", tier: "standard", inputCostPer1k: 0.25, outputCostPer1k: 1.0 },
+  { id: "o3-mini", name: "o3 Mini", provider: "OpenAI", tier: "standard", inputCostPer1k: 0.11, outputCostPer1k: 0.44 },
   { id: "gemini-2.0-pro", name: "Gemini 2.0 Pro", provider: "Google", tier: "standard", inputCostPer1k: 0.125, outputCostPer1k: 0.5 },
   // Premium
+  { id: "gpt-4.1", name: "GPT-4.1", provider: "OpenAI", tier: "premium", inputCostPer1k: 0.2, outputCostPer1k: 0.8 },
+  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", provider: "Google", tier: "premium", inputCostPer1k: 0.125, outputCostPer1k: 0.5 },
   { id: "claude-sonnet-4-20250514", name: "Claude Sonnet 4", provider: "Anthropic", tier: "premium", inputCostPer1k: 0.3, outputCostPer1k: 1.5 },
+  { id: "claude-opus-4-20250514", name: "Claude Opus 4", provider: "Anthropic", tier: "premium", inputCostPer1k: 1.5, outputCostPer1k: 7.5 },
 ];
 
 const TIER_LABELS: Record<string, string> = {

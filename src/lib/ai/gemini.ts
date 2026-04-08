@@ -9,6 +9,24 @@ const geminiProvider: AIProvider = {
   name: "Google Gemini",
   models: [
     {
+      id: "gemini-2.5-pro",
+      name: "Gemini 2.5 Pro",
+      provider: "gemini",
+      capabilities: ["text", "code"],
+      inputCostPer1k: 0.125,
+      outputCostPer1k: 0.5,
+      maxTokens: 16384,
+    },
+    {
+      id: "gemini-2.5-flash",
+      name: "Gemini 2.5 Flash",
+      provider: "gemini",
+      capabilities: ["text", "code"],
+      inputCostPer1k: 0.015,
+      outputCostPer1k: 0.06,
+      maxTokens: 16384,
+    },
+    {
       id: "gemini-2.0-flash",
       name: "Gemini 2.0 Flash",
       provider: "gemini",

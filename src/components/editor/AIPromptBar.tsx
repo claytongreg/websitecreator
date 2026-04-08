@@ -52,7 +52,7 @@ function buildPageSkeleton(fullHtml: string): string | null {
 
 export function AIPromptBar({ siteId }: Props) {
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState("llama-3.3-70b-versatile");
+  const [model, setModel] = useState("claude-opus-4-20250514");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {

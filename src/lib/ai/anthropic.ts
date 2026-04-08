@@ -9,6 +9,15 @@ const anthropicProvider: AIProvider = {
   name: "Anthropic",
   models: [
     {
+      id: "claude-opus-4-20250514",
+      name: "Claude Opus 4",
+      provider: "anthropic",
+      capabilities: ["text", "code"],
+      inputCostPer1k: 1.5,
+      outputCostPer1k: 7.5,
+      maxTokens: 16384,
+    },
+    {
       id: "claude-sonnet-4-20250514",
       name: "Claude Sonnet 4",
       provider: "anthropic",

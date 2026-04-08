@@ -9,6 +9,33 @@ const openaiProvider: AIProvider = {
   name: "OpenAI",
   models: [
     {
+      id: "gpt-4.1",
+      name: "GPT-4.1",
+      provider: "openai",
+      capabilities: ["text", "code"],
+      inputCostPer1k: 0.2,
+      outputCostPer1k: 0.8,
+      maxTokens: 32768,
+    },
+    {
+      id: "gpt-4.1-mini",
+      name: "GPT-4.1 Mini",
+      provider: "openai",
+      capabilities: ["text", "code"],
+      inputCostPer1k: 0.04,
+      outputCostPer1k: 0.16,
+      maxTokens: 16384,
+    },
+    {
+      id: "o3-mini",
+      name: "o3 Mini",
+      provider: "openai",
+      capabilities: ["text", "code"],
+      inputCostPer1k: 0.11,
+      outputCostPer1k: 0.44,
+      maxTokens: 16384,
+    },
+    {
       id: "gpt-4o",
       name: "GPT-4o",
       provider: "openai",
