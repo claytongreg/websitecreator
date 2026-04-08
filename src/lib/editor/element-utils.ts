@@ -98,6 +98,35 @@ export function replaceElementByPath(html: string, path: string, newElementHtml:
   return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
 }
 
+/** Extract all unique image URLs from page HTML (img src + background-image urls) */
+export function extractPageImages(html: string): string[] {
+  const urls = new Set<string>();
+
+  // Match <img src="...">
+  const imgRegex = /<img[^>]+src=["']([^"']+)["']/gi;
+  let m;
+  while ((m = imgRegex.exec(html)) !== null) {
+    if (m[1]) urls.add(m[1]);
+  }
+
+  // Match background-image: url("...")
+  const bgRegex = /background-image:\s*url\(["']?([^"')]+)["']?\)/gi;
+  while ((m = bgRegex.exec(html)) !== null) {
+    if (m[1]) urls.add(m[1]);
+  }
+
+  // Also match inline style background-image
+  const styleBgRegex = /style="[^"]*background-image:\s*url\(["']?([^"')]+)["']?\)[^"]*"/gi;
+  while ((m = styleBgRegex.exec(html)) !== null) {
+    if (m[1]) urls.add(m[1]);
+  }
+
+  // Filter out placeholders
+  return Array.from(urls).filter(
+    (url) => url && !url.includes("placehold") && url !== "none"
+  );
+}
+
 export function replaceElementContent(html: string, path: string, newContent: string): string | null {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
