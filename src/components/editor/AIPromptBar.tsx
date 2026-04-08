@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ModelSelector } from "@/components/ui/ModelSelector";
 import { useEditorStore } from "@/lib/editor/store";
 import { CostReceipt } from "./CostReceipt";
-import { Loader2, Send, Undo2, Redo2, ImagePlus } from "lucide-react";
+import { Loader2, Send, Undo2, Redo2, ImagePlus, Camera, X } from "lucide-react";
 import { PhotoWidget } from "./PhotoWidget";
 import { toast } from "sonner";
+import html2canvas from "html2canvas";
 
 interface Props {
   siteId: string;
@@ -18,6 +19,8 @@ interface Props {
 export function AIPromptBar({ siteId }: Props) {
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState("llama-3.3-70b-versatile");
+  const [screenshot, setScreenshot] = useState<string | null>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -34,6 +37,30 @@ export function AIPromptBar({ siteId }: Props) {
     isPhotoWidgetOpen,
     setPhotoWidgetOpen,
   } = useEditorStore();
+
+  const captureScreenshot = useCallback(async () => {
+    setIsCapturing(true);
+    try {
+      const iframe = document.querySelector("iframe") as HTMLIFrameElement | null;
+      if (!iframe?.contentDocument?.body) {
+        toast.error("Could not access the canvas");
+        return;
+      }
+      const canvas = await html2canvas(iframe.contentDocument.body, {
+        useCORS: true,
+        scale: 0.5,
+        logging: false,
+      });
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+      setScreenshot(dataUrl);
+      toast.success("Screenshot captured");
+    } catch (err) {
+      console.error("Screenshot capture failed:", err);
+      toast.error("Failed to capture screenshot");
+    } finally {
+      setIsCapturing(false);
+    }
+  }, []);
 
   const handleSubmit = async () => {
     if (!prompt.trim() || isAiLoading) return;
@@ -57,6 +84,7 @@ export function AIPromptBar({ siteId }: Props) {
                 outerHTML: selectedElement.outerHTML,
               }
             : null,
+          ...(screenshot ? { screenshot } : {}),
         }),
       });
 
@@ -90,6 +118,7 @@ export function AIPromptBar({ siteId }: Props) {
       }
 
       setPrompt("");
+      setScreenshot(null);
     } catch (err) {
       console.error("AI edit failed:", err);
       toast.error(err instanceof Error ? err.message : "AI edit failed — check console for details");
@@ -141,8 +170,38 @@ export function AIPromptBar({ siteId }: Props) {
           <ImagePlus className="w-4 h-4" />
         </Button>
 
-        {/* Prompt input */}
-        <div className="flex-1 relative">
+        {/* Screenshot capture */}
+        <Button
+          variant={screenshot ? "default" : "outline"}
+          size="sm"
+          onClick={captureScreenshot}
+          disabled={isCapturing || isAiLoading}
+          title="Capture screenshot to send with prompt"
+        >
+          {isCapturing ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Camera className="w-4 h-4" />
+          )}
+        </Button>
+
+        {/* Prompt input with optional screenshot preview */}
+        <div className="flex-1 relative flex items-center gap-2">
+          {screenshot && (
+            <div className="relative flex-shrink-0">
+              <img
+                src={screenshot}
+                alt="Screenshot"
+                className="h-8 w-14 object-cover rounded border"
+              />
+              <button
+                onClick={() => setScreenshot(null)}
+                className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
           <Input
             ref={inputRef}
             placeholder={

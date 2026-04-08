@@ -29,13 +29,23 @@ const mistralProvider: AIProvider = {
   ],
 
   async *generateText(prompt: string, options: GenerateOptions) {
+    const userContent = options.images?.length
+      ? [
+          { type: "text" as const, text: prompt },
+          ...options.images.map((dataUrl) => ({
+            type: "image_url" as const,
+            imageUrl: dataUrl,
+          })),
+        ]
+      : prompt;
+
     const stream = await client.chat.stream({
       model: options.model,
       messages: [
         ...(options.systemPrompt
           ? [{ role: "system" as const, content: options.systemPrompt }]
           : []),
-        { role: "user" as const, content: prompt },
+        { role: "user" as const, content: userContent },
       ],
       temperature: options.temperature ?? 0.7,
       maxTokens: options.maxTokens ?? 4096,

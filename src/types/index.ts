@@ -20,6 +20,7 @@ export interface GenerateOptions {
   systemPrompt?: string;
   temperature?: number;
   maxTokens?: number;
+  images?: string[]; // base64 data URLs for vision-capable models
 }
 
 export interface ImageOptions {

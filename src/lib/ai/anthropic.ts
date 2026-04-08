@@ -29,11 +29,29 @@ const anthropicProvider: AIProvider = {
   ],
 
   async *generateText(prompt: string, options: GenerateOptions) {
+    const userContent: Anthropic.MessageCreateParams["messages"][0]["content"] =
+      options.images?.length
+        ? [
+            ...options.images.map((dataUrl) => {
+              const match = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
+              return {
+                type: "image" as const,
+                source: {
+                  type: "base64" as const,
+                  media_type: (match?.[1] ?? "image/png") as "image/png",
+                  data: match?.[2] ?? dataUrl,
+                },
+              };
+            }),
+            { type: "text" as const, text: prompt },
+          ]
+        : prompt;
+
     const stream = client.messages.stream({
       model: options.model,
       max_tokens: options.maxTokens ?? 4096,
       ...(options.systemPrompt ? { system: options.systemPrompt } : {}),
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: userContent }],
     });
 
     for await (const event of stream) {

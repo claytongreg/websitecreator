@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 
 // POST /api/ai/generate — Generate or edit HTML using AI
 export async function POST(req: NextRequest) {
-  const { prompt, model, siteId, currentHtml, selectedElement } = await req.json();
+  const { prompt, model, siteId, currentHtml, selectedElement, screenshot } = await req.json();
 
   // Build the system prompt for HTML editing
   const systemPrompt = `You are an expert web developer. The user is editing a website using a visual editor.
@@ -17,7 +17,7 @@ Rules:
 - Use Tailwind CSS classes for styling (the page loads Tailwind from CDN)
 - Ensure the HTML is valid and well-formed
 - Make the minimum changes necessary to fulfill the request
-- Be creative and make it look professional`;
+- Be creative and make it look professional${screenshot ? "\n- The user has attached a screenshot of the current page for visual reference. Use it to understand the layout and appearance." : ""}`;
 
   const userPrompt = selectedElement
     ? `Current page HTML:
@@ -52,6 +52,7 @@ Modify the HTML to fulfill this request. Return the complete modified HTML docum
       systemPrompt,
       temperature: 0.3,
       maxTokens: 8192,
+      ...(screenshot ? { images: [screenshot] } : {}),
     })) {
       result += chunk;
     }

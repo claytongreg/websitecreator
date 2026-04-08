@@ -49,13 +49,26 @@ const geminiProvider: AIProvider = {
   ],
 
   async *generateText(prompt: string, options: GenerateOptions) {
+    const userParts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [
+      { text: prompt },
+      ...(options.images ?? []).map((dataUrl) => {
+        const match = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
+        return {
+          inlineData: {
+            mimeType: match?.[1] ?? "image/png",
+            data: match?.[2] ?? dataUrl,
+          },
+        };
+      }),
+    ];
+
     const response = await ai.models.generateContentStream({
       model: options.model,
       contents: [
         ...(options.systemPrompt
           ? [{ role: "model" as const, parts: [{ text: options.systemPrompt }] }]
           : []),
-        { role: "user" as const, parts: [{ text: prompt }] },
+        { role: "user" as const, parts: userParts },
       ],
       config: {
         temperature: options.temperature ?? 0.7,
