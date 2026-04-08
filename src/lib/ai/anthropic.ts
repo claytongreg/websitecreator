@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { AIProvider, GenerateOptions } from "@/types";
 import { registerProvider } from "./provider";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY ?? "" });
 
 const anthropicProvider: AIProvider = {
   id: "anthropic",

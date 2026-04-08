@@ -112,9 +112,8 @@ Modify the HTML to fulfill this request. Return the complete modified HTML docum
     });
   } catch (error) {
     console.error("AI generation failed:", error);
-    return NextResponse.json(
-      { error: "AI generation failed" },
-      { status: 500 }
-    );
+    const message =
+      error instanceof Error ? error.message : "AI generation failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

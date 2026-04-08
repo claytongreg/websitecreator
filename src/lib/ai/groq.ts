@@ -2,7 +2,7 @@ import Groq from "groq-sdk";
 import type { AIProvider, GenerateOptions } from "@/types";
 import { registerProvider } from "./provider";
 
-const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const client = new Groq({ apiKey: process.env.GROQ_API_KEY ?? "" });
 
 const groqProvider: AIProvider = {
   id: "groq",

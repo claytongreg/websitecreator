@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import type { AIProvider, GenerateOptions, ImageOptions } from "@/types";
 import { registerProvider } from "./provider";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY ?? "" });
 
 const openaiProvider: AIProvider = {
   id: "openai",

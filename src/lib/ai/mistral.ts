@@ -2,7 +2,7 @@ import { Mistral } from "@mistralai/mistralai";
 import type { AIProvider, GenerateOptions } from "@/types";
 import { registerProvider } from "./provider";
 
-const client = new Mistral({ apiKey: process.env.MISTRAL_API_KEY });
+const client = new Mistral({ apiKey: process.env.MISTRAL_API_KEY ?? "" });
 
 const mistralProvider: AIProvider = {
   id: "mistral",

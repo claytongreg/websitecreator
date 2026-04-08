@@ -3,7 +3,7 @@ import type { AIProvider, GenerateOptions } from "@/types";
 import { registerProvider } from "./provider";
 
 const client = new OpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY,
+  apiKey: process.env.DEEPSEEK_API_KEY ?? "",
   baseURL: "https://api.deepseek.com",
 });
 
