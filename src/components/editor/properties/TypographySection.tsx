@@ -20,6 +20,7 @@ import {
   AlignRight,
   AlignJustify,
 } from "lucide-react";
+import { FONT_OPTIONS } from "@/lib/editor/theme-css";
 
 interface TypographySectionProps {
   computedStyle: Record<string, string>;
@@ -59,9 +60,36 @@ export function TypographySection({
   onStart,
 }: TypographySectionProps) {
   const currentAlign = computedStyle.textAlign ?? "left";
+  const rawFont = computedStyle.fontFamily ?? "";
+  const currentFont =
+    rawFont.split(",")[0]?.replace(/['"]/g, "").trim() || "Inter";
 
   return (
     <SectionWrapper title="Typography">
+      <PropertyRow label="Font">
+        <Select
+          value={currentFont}
+          onValueChange={(v) => {
+            if (!v) return;
+            onStart();
+            onStyleChange({ fontFamily: `'${v}', sans-serif` });
+            onCommit();
+          }}
+        >
+          <SelectTrigger className="h-7 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {FONT_OPTIONS.map((font) => (
+              <SelectItem key={font} value={font} className="text-xs">
+                <span style={{ fontFamily: `'${font}', sans-serif` }}>
+                  {font}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </PropertyRow>
       <CSSValueInput
         label="Font Size"
         value={computedStyle.fontSize ?? ""}

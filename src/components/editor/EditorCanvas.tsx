@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from "react";
 import { useEditorStore } from "@/lib/editor/store";
-import { generateThemeCss } from "@/lib/editor/theme-css";
+import { generateThemeCss, FONT_OPTIONS } from "@/lib/editor/theme-css";
 import type { ElementSelection } from "@/types";
 
 interface EditorCanvasProps {
@@ -561,6 +561,21 @@ export function EditorCanvas({ iframeRef }: EditorCanvasProps) {
     }
     if (linkEl.href !== fontsUrl) {
       linkEl.href = fontsUrl;
+    }
+
+    // Also load all available fonts so per-element font overrides render
+    const allFamilies = FONT_OPTIONS.map(
+      (f) => `family=${f.replace(/ /g, "+")}:wght@300;400;500;600;700;800;900`
+    ).join("&");
+    const allFontsUrl = `https://fonts.googleapis.com/css2?${allFamilies}&display=swap`;
+
+    let allFontsLink = doc.getElementById("wc-all-fonts") as HTMLLinkElement | null;
+    if (!allFontsLink) {
+      allFontsLink = doc.createElement("link");
+      allFontsLink.id = "wc-all-fonts";
+      allFontsLink.rel = "stylesheet";
+      allFontsLink.href = allFontsUrl;
+      (doc.head || doc.documentElement).appendChild(allFontsLink);
     }
   }, [iframeRef]);
 
