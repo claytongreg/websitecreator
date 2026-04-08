@@ -1,6 +1,28 @@
 import type { ElementSelection } from "@/types";
 
-export type ElementType = "text" | "image" | "section" | "generic";
+export type ElementType = "text" | "image" | "section" | "button" | "generic";
+
+export function isButtonElement(selection: ElementSelection): boolean {
+  const tag = selection.tagName.toLowerCase();
+
+  if (tag === "button") return true;
+
+  if (tag === "input") {
+    const type = (selection.attributes?.type ?? "").toLowerCase();
+    if (type === "submit" || type === "button" || type === "reset") return true;
+  }
+
+  if (tag === "a") {
+    if (selection.attributes?.role === "button") return true;
+    const bg = selection.computedStyle?.backgroundColor ?? "";
+    const hasBackground = bg && bg !== "transparent" && bg !== "rgba(0, 0, 0, 0)";
+    const paddingLeft = parseFloat(selection.computedStyle?.paddingLeft ?? "0");
+    const paddingRight = parseFloat(selection.computedStyle?.paddingRight ?? "0");
+    if (hasBackground && paddingLeft >= 8 && paddingRight >= 8) return true;
+  }
+
+  return false;
+}
 
 const TEXT_TAGS = new Set([
   "h1", "h2", "h3", "h4", "h5", "h6",
@@ -18,6 +40,8 @@ export function getElementType(selection: ElementSelection): ElementType {
   if (selection.computedStyle?.backgroundImage && selection.computedStyle.backgroundImage !== "none") {
     return "image";
   }
+
+  if (isButtonElement(selection)) return "button";
 
   if (TEXT_TAGS.has(tag)) return "text";
 

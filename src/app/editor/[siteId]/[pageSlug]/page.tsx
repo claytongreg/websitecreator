@@ -231,6 +231,9 @@ export default function EditorPage() {
         </div>
       </header>
 
+      {/* AI Prompt Bar */}
+      <AIPromptBar siteId={siteId} pageSlug={pageSlug} />
+
       {/* Main editor area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Page tree sidebar */}
@@ -265,8 +268,6 @@ export default function EditorPage() {
         <FloatingToolbar iframeRef={iframeRef} onAiEdit={handleAiEditFocus} siteId={siteId} />
       )}
 
-      {/* AI Prompt Bar */}
-      <AIPromptBar siteId={siteId} pageSlug={pageSlug} />
     </div>
   );
 }

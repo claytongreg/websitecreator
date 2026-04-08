@@ -11,7 +11,8 @@ import { BorderSection } from "./properties/BorderSection";
 import { SizingSection } from "./properties/SizingSection";
 import { EffectsSection } from "./properties/EffectsSection";
 import { LinkSection } from "./properties/LinkSection";
-import { replaceElementAttribute } from "@/lib/editor/element-utils";
+import { ButtonSection } from "./properties/ButtonSection";
+import { replaceElementAttribute, isButtonElement } from "@/lib/editor/element-utils";
 
 interface PropertiesPanelProps {
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
@@ -88,6 +89,7 @@ export function PropertiesPanel({ iframeRef }: PropertiesPanelProps) {
   if (!selectedElement) return null;
 
   const { computedStyle, tagName } = selectedElement;
+  const isButton = isButtonElement(selectedElement);
 
   const sectionProps = {
     computedStyle,
@@ -124,6 +126,7 @@ export function PropertiesPanel({ iframeRef }: PropertiesPanelProps) {
             onAttributeChange={handleAttributeChange}
           />
         )}
+        {isButton && <ButtonSection {...sectionProps} />}
         <BackgroundSection {...sectionProps} />
         <TypographySection {...sectionProps} />
         <SpacingSection {...sectionProps} />
