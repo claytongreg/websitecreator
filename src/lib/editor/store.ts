@@ -36,6 +36,9 @@ interface EditorState {
   // Photo widget
   isPhotoWidgetOpen: boolean;
 
+  // Style editing (properties panel)
+  styleChangeBeforeHtml: string | null;
+
   // Actions
   setHtml: (html: string) => void;
   setCss: (css: string) => void;
@@ -56,6 +59,8 @@ interface EditorState {
   addCost: (cents: number) => void;
   addEdit: (edit: SessionEdit) => void;
   setPhotoWidgetOpen: (open: boolean) => void;
+  beginStyleChange: () => void;
+  commitStyleChange: (afterHtml: string, elementPath: string, updatedComputedStyle?: Record<string, string>) => void;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -71,6 +76,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   sessionCostCents: 0,
   sessionEdits: [],
   isPhotoWidgetOpen: false,
+  styleChangeBeforeHtml: null,
 
   setHtml: (html) => set({ html }),
   setCss: (css) => set({ css }),
@@ -140,4 +146,43 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       sessionEdits: [...s.sessionEdits, edit],
     })),
   setPhotoWidgetOpen: (open) => set({ isPhotoWidgetOpen: open }),
+
+  beginStyleChange: () => {
+    const { styleChangeBeforeHtml, html } = get();
+    if (styleChangeBeforeHtml === null) {
+      set({ styleChangeBeforeHtml: html });
+    }
+  },
+
+  commitStyleChange: (afterHtml, elementPath, updatedComputedStyle) => {
+    const { styleChangeBeforeHtml, html, history, historyIndex, selectedElement } = get();
+    const before = styleChangeBeforeHtml ?? html;
+    // No-op if nothing changed
+    if (before === afterHtml) {
+      set({ styleChangeBeforeHtml: null });
+      return;
+    }
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push({
+      type: "style",
+      elementPath,
+      before,
+      after: afterHtml,
+      timestamp: Date.now(),
+    });
+    const updates: Partial<EditorState> = {
+      history: newHistory,
+      historyIndex: newHistory.length - 1,
+      html: afterHtml,
+      styleChangeBeforeHtml: null,
+    };
+    // Preserve selection but update computedStyle if provided
+    if (selectedElement && updatedComputedStyle) {
+      updates.selectedElement = {
+        ...selectedElement,
+        computedStyle: { ...selectedElement.computedStyle, ...updatedComputedStyle },
+      };
+    }
+    set(updates);
+  },
 }));

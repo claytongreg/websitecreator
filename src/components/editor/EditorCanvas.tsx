@@ -76,6 +76,31 @@ const IFRAME_SCRIPT = `
       margin: computed.margin,
       textAlign: computed.textAlign,
       backgroundImage: computed.backgroundImage,
+      paddingTop: computed.paddingTop,
+      paddingRight: computed.paddingRight,
+      paddingBottom: computed.paddingBottom,
+      paddingLeft: computed.paddingLeft,
+      marginTop: computed.marginTop,
+      marginRight: computed.marginRight,
+      marginBottom: computed.marginBottom,
+      marginLeft: computed.marginLeft,
+      borderWidth: computed.borderWidth,
+      borderTopWidth: computed.borderTopWidth,
+      borderColor: computed.borderColor,
+      borderStyle: computed.borderStyle,
+      borderRadius: computed.borderRadius,
+      lineHeight: computed.lineHeight,
+      letterSpacing: computed.letterSpacing,
+      textTransform: computed.textTransform,
+      width: computed.width,
+      height: computed.height,
+      minWidth: computed.minWidth,
+      maxWidth: computed.maxWidth,
+      minHeight: computed.minHeight,
+      maxHeight: computed.maxHeight,
+      opacity: computed.opacity,
+      boxShadow: computed.boxShadow,
+      __inlineStyle: el.style.cssText,
     };
   }
 
@@ -273,6 +298,25 @@ const IFRAME_SCRIPT = `
         }, '*');
       }
     }
+    // Set inline styles on selected element (live preview)
+    if (e.data.type === 'wc_set_style' && __wc_selectedEl) {
+      var styles = e.data.styles;
+      for (var key in styles) {
+        if (styles.hasOwnProperty(key)) {
+          __wc_selectedEl.style[key] = styles[key];
+        }
+      }
+      sendSelectionRect();
+    }
+    // Commit style change — send clean HTML back for undo snapshot
+    if (e.data.type === 'wc_commit_style' && __wc_selectedEl) {
+      window.parent.postMessage({
+        type: 'wc_style_committed',
+        newHTML: getCleanHTML(),
+        path: getElementPath(__wc_selectedEl),
+        computedStyle: getStyles(__wc_selectedEl),
+      }, '*');
+    }
     // Resize element width
     if (e.data.type === 'wc_resize' && __wc_selectedEl) {
       if (e.data.width) {
@@ -297,7 +341,7 @@ const IFRAME_SCRIPT = `
 `;
 
 export function EditorCanvas({ iframeRef }: EditorCanvasProps) {
-  const { html, setHtml, theme, selectElement, updateSelectionRect, pushAction } =
+  const { html, setHtml, theme, selectElement, updateSelectionRect, pushAction, commitStyleChange } =
     useEditorStore();
 
   // Listen for messages from iframe
@@ -333,9 +377,16 @@ export function EditorCanvas({ iframeRef }: EditorCanvasProps) {
           timestamp: Date.now(),
         });
       }
+      if (e.data.type === "wc_style_committed") {
+        commitStyleChange(
+          e.data.newHTML,
+          e.data.path ?? "document",
+          e.data.computedStyle
+        );
+      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectElement, setHtml, updateSelectionRect, pushAction]
+    [selectElement, setHtml, updateSelectionRect, pushAction, commitStyleChange]
   );
 
   useEffect(() => {

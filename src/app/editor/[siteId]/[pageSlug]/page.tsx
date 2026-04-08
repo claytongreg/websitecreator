@@ -10,6 +10,7 @@ import { AIPromptBar } from "@/components/editor/AIPromptBar";
 import { PageTree } from "@/components/editor/PageTree";
 import { useEditorStore } from "@/lib/editor/store";
 import { ThemePanel } from "@/components/editor/ThemePanel";
+import { PropertiesPanel } from "@/components/editor/PropertiesPanel";
 import { generateThemeCss, DEFAULT_THEME } from "@/lib/editor/theme-css";
 import type { ThemeSettings } from "@/types";
 import { ArrowLeft, Save, Eye, Code, Palette } from "lucide-react";
@@ -31,6 +32,7 @@ export default function EditorPage() {
   const [showCode, setShowCode] = useState(false);
   const [saving, setSaving] = useState(false);
   const { html, setHtml, setCss, theme, setTheme, showThemePanel, setShowThemePanel, addEdit } = useEditorStore();
+  const selectedElement = useEditorStore((s) => s.selectedElement);
   const codeRef = useRef<HTMLTextAreaElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -192,6 +194,7 @@ export default function EditorPage() {
           <EditorCanvas iframeRef={iframeRef} />
         )}
 
+        {!showCode && selectedElement && <PropertiesPanel iframeRef={iframeRef} />}
         {showThemePanel && <ThemePanel />}
       </div>
 
