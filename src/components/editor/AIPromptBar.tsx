@@ -101,13 +101,7 @@ export function AIPromptBar({ siteId }: Props) {
       } else {
         body.editMode = "page";
         body.currentHtml = html;
-        body.selectedElement = selectedElement
-          ? {
-              path: selectedElement.path,
-              tagName: selectedElement.tagName,
-              outerHTML: selectedElement.outerHTML,
-            }
-          : null;
+        body.selectedElement = null;
       }
 
       const resp = await fetch("/api/ai/generate", {
@@ -141,6 +135,7 @@ export function AIPromptBar({ siteId }: Props) {
           finalHtml = data.html;
         }
 
+        if (!finalHtml) return;
         pushAction({
           type: "edit",
           elementPath: selectedElement?.path ?? "document",
