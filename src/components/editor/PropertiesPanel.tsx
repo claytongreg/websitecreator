@@ -11,6 +11,8 @@ import { SpacingSection } from "./properties/SpacingSection";
 import { BorderSection } from "./properties/BorderSection";
 import { SizingSection } from "./properties/SizingSection";
 import { EffectsSection } from "./properties/EffectsSection";
+import { LinkSection } from "./properties/LinkSection";
+import { replaceElementAttribute } from "@/lib/editor/element-utils";
 
 interface PropertiesPanelProps {
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
@@ -21,6 +23,8 @@ export function PropertiesPanel({ iframeRef }: PropertiesPanelProps) {
   const beginStyleChange = useEditorStore((s) => s.beginStyleChange);
   const styleChangeBeforeHtml = useEditorStore((s) => s.styleChangeBeforeHtml);
   const selectElement = useEditorStore((s) => s.selectElement);
+  const html = useEditorStore((s) => s.html);
+  const pushAction = useEditorStore((s) => s.pushAction);
   const hasPendingRef = useRef(false);
 
   // Track whether we have pending changes for cleanup
@@ -56,6 +60,23 @@ export function PropertiesPanel({ iframeRef }: PropertiesPanelProps) {
       "*"
     );
   }, [iframeRef]);
+
+  const handleAttributeChange = useCallback(
+    (attr: string, value: string) => {
+      if (!selectedElement) return;
+      const result = replaceElementAttribute(html, selectedElement.path, attr, value);
+      if (result) {
+        pushAction({
+          type: "edit",
+          elementPath: selectedElement.path,
+          before: html,
+          after: result,
+          timestamp: Date.now(),
+        });
+      }
+    },
+    [selectedElement, html, pushAction]
+  );
 
   const handleClose = () => {
     selectElement(null);
@@ -98,6 +119,12 @@ export function PropertiesPanel({ iframeRef }: PropertiesPanelProps) {
 
       {/* Sections */}
       <ScrollArea className="flex-1">
+        {tagName.toLowerCase() === "a" && (
+          <LinkSection
+            attributes={selectedElement.attributes}
+            onAttributeChange={handleAttributeChange}
+          />
+        )}
         <BackgroundSection {...sectionProps} />
         <TypographySection {...sectionProps} />
         <SpacingSection {...sectionProps} />

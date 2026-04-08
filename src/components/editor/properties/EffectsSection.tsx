@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import { SectionWrapper, CSSValueInput, PropertyRow } from "./shared";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +19,18 @@ export function EffectsSection({
   onStart,
 }: EffectsSectionProps) {
   const opacity = computedStyle.opacity ?? "1";
+
+  // Local state for shadow input so typing isn't clobbered by re-renders
+  const externalShadow = computedStyle.boxShadow === "none" ? "" : (computedStyle.boxShadow ?? "");
+  const [shadowLocal, setShadowLocal] = useState(externalShadow);
+  const isFocusedRef = useRef(false);
+
+  // Sync from computed style when not actively editing
+  useEffect(() => {
+    if (!isFocusedRef.current) {
+      setShadowLocal(externalShadow);
+    }
+  }, [externalShadow]);
 
   return (
     <SectionWrapper title="Effects" defaultOpen={false}>
@@ -48,13 +61,19 @@ export function EffectsSection({
       </div>
       <PropertyRow label="Shadow">
         <Input
-          value={computedStyle.boxShadow === "none" ? "" : (computedStyle.boxShadow ?? "")}
+          value={shadowLocal}
           placeholder="none"
+          onFocus={() => { isFocusedRef.current = true; }}
           onChange={(e) => {
+            const val = e.target.value;
+            setShadowLocal(val);
             onStart();
-            onStyleChange({ boxShadow: e.target.value || "none" });
+            onStyleChange({ boxShadow: val || "none" });
           }}
-          onBlur={onCommit}
+          onBlur={() => {
+            isFocusedRef.current = false;
+            onCommit();
+          }}
           className="h-7 text-xs font-mono"
         />
       </PropertyRow>

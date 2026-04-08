@@ -45,6 +45,46 @@ export function duplicateElement(html: string, path: string): string | null {
   return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
 }
 
+export function replaceElementAttribute(html: string, path: string, attr: string, value: string): string | null {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+  const el = doc.querySelector(path);
+  if (!el) return null;
+  el.setAttribute(attr, value);
+  return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
+}
+
+const CONTAINER_TAGS = new Set([
+  "section", "div", "header", "footer", "main", "article", "aside", "nav",
+]);
+
+export function insertSnippetHtml(
+  html: string,
+  snippetHtml: string,
+  insertMode: "after" | "inside",
+  afterPath?: string
+): string | null {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+
+  if (afterPath) {
+    const target = doc.querySelector(afterPath);
+    if (!target) return null;
+
+    if (insertMode === "inside" && CONTAINER_TAGS.has(target.tagName.toLowerCase())) {
+      target.insertAdjacentHTML("beforeend", snippetHtml);
+    } else {
+      target.insertAdjacentHTML("afterend", snippetHtml);
+    }
+  } else {
+    const main = doc.querySelector("main");
+    const container = main || doc.body;
+    container.insertAdjacentHTML("beforeend", snippetHtml);
+  }
+
+  return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
+}
+
 export function replaceElementContent(html: string, path: string, newContent: string): string | null {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");

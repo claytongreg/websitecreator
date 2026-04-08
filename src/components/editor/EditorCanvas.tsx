@@ -320,6 +320,135 @@ const IFRAME_SCRIPT = `
         computedStyle: getStyles(__wc_selectedEl),
       }, '*');
     }
+    // Start drag-to-move mode
+    if (e.data.type === 'wc_start_drag' && __wc_selectedEl) {
+      var dragEl = __wc_selectedEl;
+      var dragGhost = null;
+      var dropIndicator = null;
+      var dropTarget = null; // { parent, ref } — insert before ref (null = append)
+      var dragActive = true;
+
+      // Hide toolbar overlays during drag
+      overlay.style.display = 'none';
+      selectedOverlay.style.display = 'none';
+
+      // Create ghost (semi-transparent clone following cursor)
+      dragGhost = dragEl.cloneNode(true);
+      dragGhost.id = '__wc_drag_ghost';
+      dragGhost.style.cssText = 'position:fixed;pointer-events:none;opacity:0.5;z-index:100001;width:' + dragEl.offsetWidth + 'px;max-height:80px;overflow:hidden;border:2px solid #3b82f6;border-radius:4px;background:#fff;transform:translate(-50%,-50%);';
+      document.body.appendChild(dragGhost);
+
+      // Create drop indicator line
+      dropIndicator = document.createElement('div');
+      dropIndicator.id = '__wc_drop_indicator';
+      dropIndicator.style.cssText = 'position:fixed;pointer-events:none;z-index:100000;height:3px;background:#3b82f6;border-radius:2px;display:none;transition:top 0.08s ease,left 0.08s ease,width 0.08s ease;';
+      document.body.appendChild(dropIndicator);
+
+      function findDropPosition(x, y) {
+        var target = document.elementFromPoint(x, y);
+        if (!target || target.id === '__wc_drag_ghost' || target.id === '__wc_drop_indicator' || target.id === '__wc_overlay' || target.id === '__wc_selected') return null;
+        // Don't drop inside the dragged element itself
+        if (dragEl.contains(target)) return null;
+        // Walk up to find a suitable container
+        var container = target;
+        while (container && container !== document.body && container !== document.documentElement) {
+          // Check if this is a direct child of a container-like element
+          var parent = container.parentElement;
+          if (parent && parent !== document.body && parent !== document.documentElement) {
+            var rect = container.getBoundingClientRect();
+            var midY = rect.top + rect.height / 2;
+            if (y < midY) {
+              return { parent: parent, ref: container, side: 'before' };
+            } else {
+              return { parent: parent, ref: container.nextElementSibling, side: 'after', afterEl: container };
+            }
+          }
+          container = parent;
+        }
+        return null;
+      }
+
+      function onDragMove(ev) {
+        if (!dragActive) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        // Move ghost
+        if (dragGhost) {
+          dragGhost.style.left = ev.clientX + 'px';
+          dragGhost.style.top = ev.clientY + 'px';
+        }
+        // Find drop position
+        // Temporarily hide ghost for elementFromPoint
+        if (dragGhost) dragGhost.style.display = 'none';
+        dropTarget = findDropPosition(ev.clientX, ev.clientY);
+        if (dragGhost) dragGhost.style.display = '';
+        // Show indicator
+        if (dropTarget && dropIndicator) {
+          var refEl = dropTarget.side === 'before' ? dropTarget.ref : (dropTarget.afterEl || null);
+          if (refEl) {
+            var rr = refEl.getBoundingClientRect();
+            var indicatorY = dropTarget.side === 'before' ? rr.top - 2 : rr.bottom + 1;
+            dropIndicator.style.display = 'block';
+            dropIndicator.style.top = indicatorY + 'px';
+            dropIndicator.style.left = rr.left + 'px';
+            dropIndicator.style.width = rr.width + 'px';
+          } else {
+            // Appending to end of parent
+            var parentRect = dropTarget.parent.getBoundingClientRect();
+            var lastChild = dropTarget.parent.lastElementChild;
+            var botY = lastChild ? lastChild.getBoundingClientRect().bottom + 1 : parentRect.bottom - 2;
+            dropIndicator.style.display = 'block';
+            dropIndicator.style.top = botY + 'px';
+            dropIndicator.style.left = parentRect.left + 'px';
+            dropIndicator.style.width = parentRect.width + 'px';
+          }
+        } else if (dropIndicator) {
+          dropIndicator.style.display = 'none';
+        }
+      }
+
+      function onDragUp(ev) {
+        if (!dragActive) return;
+        dragActive = false;
+        ev.preventDefault();
+        ev.stopPropagation();
+        document.removeEventListener('mousemove', onDragMove, true);
+        document.removeEventListener('mouseup', onDragUp, true);
+        // Cleanup ghost and indicator
+        if (dragGhost && dragGhost.parentElement) dragGhost.remove();
+        if (dropIndicator && dropIndicator.parentElement) dropIndicator.remove();
+        // Perform the move
+        if (dropTarget && dropTarget.parent) {
+          try {
+            dropTarget.parent.insertBefore(dragEl, dropTarget.ref || null);
+          } catch(ex) { /* ignore invalid moves */ }
+        }
+        // Re-select and update
+        __wc_selectedEl = dragEl;
+        sendSelectionRect();
+        selectedOverlay.style.display = 'block';
+        window.parent.postMessage({
+          type: 'wc_html_changed',
+          newHTML: getCleanHTML(),
+          movedPath: getElementPath(dragEl),
+        }, '*');
+        // Reset cursor
+        document.body.style.cursor = '';
+      }
+
+      // Cancel normal click/select behavior during drag
+      function onDragClick(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        document.removeEventListener('click', onDragClick, true);
+      }
+
+      document.body.style.cursor = 'grabbing';
+      document.addEventListener('mousemove', onDragMove, true);
+      document.addEventListener('mouseup', onDragUp, true);
+      // Eat the next click so it doesn't re-select
+      setTimeout(function() { document.addEventListener('click', onDragClick, true); }, 0);
+    }
     // Resize element width
     if (e.data.type === 'wc_resize' && __wc_selectedEl) {
       if (e.data.width) {

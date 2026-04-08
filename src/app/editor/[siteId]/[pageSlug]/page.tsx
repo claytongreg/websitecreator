@@ -11,6 +11,7 @@ import { PageTree } from "@/components/editor/PageTree";
 import { useEditorStore } from "@/lib/editor/store";
 import { ThemePanel } from "@/components/editor/ThemePanel";
 import { PropertiesPanel } from "@/components/editor/PropertiesPanel";
+import { AddContentPanel } from "@/components/editor/AddContentPanel";
 import { generateThemeCss, DEFAULT_THEME } from "@/lib/editor/theme-css";
 import type { ThemeSettings } from "@/types";
 import { ArrowLeft, Save, Eye, Code, Palette } from "lucide-react";
@@ -140,6 +141,8 @@ export default function EditorPage() {
           <span className="text-xs text-muted-foreground">
             / {pageSlug}
           </span>
+          <div className="w-px h-5 bg-border mx-1" />
+          <AddContentPanel iframeRef={iframeRef} />
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -200,7 +203,7 @@ export default function EditorPage() {
 
       {/* Floating toolbar (positioned near selected element) */}
       {!showCode && (
-        <FloatingToolbar iframeRef={iframeRef} onAiEdit={handleAiEditFocus} />
+        <FloatingToolbar iframeRef={iframeRef} onAiEdit={handleAiEditFocus} siteId={siteId} />
       )}
 
       {/* AI Prompt Bar */}

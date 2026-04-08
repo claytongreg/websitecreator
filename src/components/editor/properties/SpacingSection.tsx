@@ -38,7 +38,7 @@ function SpacingInput({
       }}
       onBlur={onBlur}
       onFocus={onFocus}
-      className={`h-6 w-12 text-[10px] font-mono text-center p-0 ${className ?? ""}`}
+      className={`h-6 w-10 text-[10px] font-mono text-center p-0 ${className ?? ""}`}
     />
   );
 }
@@ -115,7 +115,7 @@ export function SpacingSection({
               onFocus={onStart}
             />
             {/* Padding box */}
-            <div className="relative border border-dashed border-blue-300 rounded p-1 min-w-[100px]">
+            <div className="relative border border-dashed border-blue-300 rounded p-1 flex-1 min-w-0">
               <div className="text-[9px] text-muted-foreground uppercase absolute top-0.5 left-1.5">
                 padding
               </div>
@@ -146,7 +146,7 @@ export function SpacingSection({
                     onBlur={onCommit}
                     onFocus={onStart}
                   />
-                  <div className="w-8 h-6 bg-muted rounded" />
+                  <div className="w-6 h-6 bg-muted rounded" />
                   <SpacingInput
                     value={computedStyle.paddingRight ?? "0px"}
                     onChange={(v) => handlePadding("paddingRight", v)}

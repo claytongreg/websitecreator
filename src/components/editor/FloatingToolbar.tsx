@@ -20,14 +20,19 @@ import {
   ArrowDown,
   Pencil,
   MoveHorizontal,
+  ImageIcon,
+  Move,
 } from "lucide-react";
+import { TextToolbox } from "./TextToolbox";
+import { ImageToolbox } from "./ImageToolbox";
 
 interface FloatingToolbarProps {
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
   onAiEdit: () => void;
+  siteId: string;
 }
 
-export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
+export function FloatingToolbar({ iframeRef, onAiEdit, siteId }: FloatingToolbarProps) {
   const { selectedElement, html, pushAction, selectElement } =
     useEditorStore();
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
@@ -35,6 +40,8 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
   const [contentOpen, setContentOpen] = useState(false);
   const [contentValue, setContentValue] = useState("");
   const [resizeOpen, setResizeOpen] = useState(false);
+  const [textToolboxOpen, setTextToolboxOpen] = useState(false);
+  const [imageToolboxOpen, setImageToolboxOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -45,6 +52,8 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
   useEffect(() => {
     setContentOpen(false);
     setResizeOpen(false);
+    setTextToolboxOpen(false);
+    setImageToolboxOpen(false);
   }, [selectedElement?.path]);
 
   const computePosition = useCallback(() => {
@@ -146,6 +155,13 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
     );
   };
 
+  const handleDragMove = () => {
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: "wc_start_drag" },
+      "*"
+    );
+  };
+
   const handleContentOpen = () => {
     setContentValue(selectedElement?.textContent ?? "");
     setContentOpen(true);
@@ -198,9 +214,13 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 px-2 text-xs gap-1"
-            title="Edit text inline"
-            onClick={handleEditText}
+            className={`h-7 px-2 text-xs gap-1 ${textToolboxOpen ? "bg-accent" : ""}`}
+            title="Text formatting"
+            onClick={() => {
+              setTextToolboxOpen(!textToolboxOpen);
+              setContentOpen(false);
+              setResizeOpen(false);
+            }}
           >
             <Type className="w-3 h-3" />
             Edit
@@ -217,6 +237,36 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
           </Button>
         </>
       )}
+
+      {/* Image — image elements only */}
+      {elementType === "image" && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className={`h-7 px-2 text-xs gap-1 ${imageToolboxOpen ? "bg-accent" : ""}`}
+          title="Change image"
+          onClick={() => {
+            setImageToolboxOpen(!imageToolboxOpen);
+            setContentOpen(false);
+            setResizeOpen(false);
+            setTextToolboxOpen(false);
+          }}
+        >
+          <ImageIcon className="w-3 h-3" />
+          Image
+        </Button>
+      )}
+
+      {/* Drag to move — all elements */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-7 px-1.5"
+        title="Drag to move"
+        onClick={handleDragMove}
+      >
+        <Move className="w-3 h-3" />
+      </Button>
 
       {/* Move Up/Down — all elements */}
       <Button
@@ -337,11 +387,21 @@ export function FloatingToolbar({ iframeRef, onAiEdit }: FloatingToolbarProps) {
     </div>
   ) : null;
 
+  const textToolbox = textToolboxOpen && position ? (
+    <TextToolbox iframeRef={iframeRef} position={position} />
+  ) : null;
+
+  const imageToolbox = imageToolboxOpen && position ? (
+    <ImageToolbox iframeRef={iframeRef} position={position} siteId={siteId} />
+  ) : null;
+
   return createPortal(
     <>
       {toolbar}
       {contentPanel}
       {resizePanel}
+      {textToolbox}
+      {imageToolbox}
     </>,
     document.body
   );
