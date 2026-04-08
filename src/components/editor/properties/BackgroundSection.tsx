@@ -216,7 +216,7 @@ export function BackgroundSection({
         <ColorInputWithAlpha
           label="Color"
           value={computedStyle.backgroundColor ?? ""}
-          onChange={(rgba) => onStyleChange({ backgroundColor: rgba })}
+          onChange={(rgba) => onStyleChange({ background: rgba, backgroundColor: rgba })}
           onCommit={onCommit}
           onStart={onStart}
         />

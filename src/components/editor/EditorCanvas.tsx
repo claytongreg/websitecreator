@@ -467,13 +467,26 @@ const IFRAME_SCRIPT = `
       var styles = e.data.styles;
       for (var key in styles) {
         if (styles.hasOwnProperty(key)) {
-          __wc_selectedEl.style[key] = styles[key];
+          // Convert camelCase to kebab-case for setProperty
+          var kebab = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+          var val = styles[key];
+          if (val === '' || val === null || val === undefined) {
+            __wc_selectedEl.style.removeProperty(kebab);
+          } else {
+            __wc_selectedEl.style.setProperty(kebab, val, 'important');
+          }
         }
       }
       sendSelectionRect();
     }
     // Commit style change — send clean HTML back for undo snapshot
     if (e.data.type === 'wc_commit_style' && __wc_selectedEl) {
+      // Strip !important from inline styles before saving
+      // (we use !important during live preview to override class styles)
+      var css = __wc_selectedEl.style.cssText;
+      if (css.indexOf('!important') !== -1) {
+        __wc_selectedEl.style.cssText = css.replace(/\s*!important/g, '');
+      }
       window.parent.postMessage({
         type: 'wc_style_committed',
         newHTML: getCleanHTML(),
