@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import {
   SectionWrapper,
   ColorInput,
@@ -21,6 +22,10 @@ import {
   AlignJustify,
 } from "lucide-react";
 import { FONT_OPTIONS } from "@/lib/editor/theme-css";
+
+const PREVIEW_FONTS_URL = `https://fonts.googleapis.com/css2?${FONT_OPTIONS.map(
+  (f) => `family=${f.replace(/ /g, "+")}`
+).join("&")}&display=swap`;
 
 interface TypographySectionProps {
   computedStyle: Record<string, string>;
@@ -64,6 +69,16 @@ export function TypographySection({
   const currentFont =
     rawFont.split(",")[0]?.replace(/['"]/g, "").trim() || "Inter";
 
+  useEffect(() => {
+    const id = "wc-preview-fonts";
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = PREVIEW_FONTS_URL;
+    document.head.appendChild(link);
+  }, []);
+
   return (
     <SectionWrapper title="Typography">
       <PropertyRow label="Font">
@@ -77,7 +92,11 @@ export function TypographySection({
           }}
         >
           <SelectTrigger className="h-7 text-xs">
-            <SelectValue />
+            <SelectValue>
+              <span style={{ fontFamily: `'${currentFont}', sans-serif` }}>
+                {currentFont}
+              </span>
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {FONT_OPTIONS.map((font) => (
