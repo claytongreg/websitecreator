@@ -138,6 +138,21 @@ export default function EditorPage() {
     }
   };
 
+  const handlePageReorder = async (reordered: { slug: string; title: string }[]) => {
+    if (!site) return;
+    setSite({ ...site, pages: site.pages.slice().sort((a, b) => {
+      return reordered.findIndex((r) => r.slug === a.slug) - reordered.findIndex((r) => r.slug === b.slug);
+    })});
+    await fetch("/api/pages", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        siteId,
+        pages: reordered.map((p, i) => ({ slug: p.slug, order: i })),
+      }),
+    });
+  };
+
   const handleAiEditFocus = () => {
     const input = document.querySelector<HTMLInputElement>(
       '[placeholder*="Edit"], [placeholder*="Describe"]'
@@ -242,6 +257,7 @@ export default function EditorPage() {
           pages={site.pages.map((p) => ({ slug: p.slug, title: p.title }))}
           currentSlug={pageSlug}
           siteName={site.name}
+          onReorder={handlePageReorder}
         />
 
         {/* Canvas or code editor */}
