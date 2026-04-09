@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { generatePageWithAI } from "../route";
-import { GENERATION_MODEL_IDS } from "@/components/ui/ModelSelector";
+import { GENERATION_MODEL_IDS } from "@/lib/models";
 
 // Allow up to 5 minutes for multi-page generation
 export const maxDuration = 300;
