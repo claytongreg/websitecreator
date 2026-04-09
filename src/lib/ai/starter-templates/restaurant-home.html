@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{SITE_NAME}} — Fine Dining Restaurant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: '{{BODY_FONT}}', system-ui, sans-serif; }
+    h1, h2, h3, h4, h5, h6 { font-family: '{{HEADING_FONT}}', system-ui, sans-serif; }
+  </style>
+</head>
+<body class="antialiased" style="color: {{TEXT}}; background-color: {{BG}};">
+
+  <!-- ============================================================ -->
+  <!-- NAVIGATION                                                    -->
+  <!-- ============================================================ -->
+  <header class="sticky top-0 z-50 border-b" style="background-color: {{BG}}; border-color: color-mix(in srgb, {{PRIMARY}} 15%, transparent);">
+    <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+      <a href="#" class="text-xl font-bold tracking-tight" style="color: {{TEXT}};">{{SITE_NAME}}</a>
+      <nav class="hidden md:flex items-center gap-10">
+        {{NAV_LINKS}}
+      </nav>
+      <a href="#reservation" class="hidden md:inline-flex items-center gap-2 text-sm font-semibold text-white px-6 py-2.5 rounded-full transition hover:opacity-90" style="background-color: {{PRIMARY}};">
+        <i data-lucide="calendar" class="w-4 h-4"></i>
+        Reserve a Table
+      </a>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- 1. HERO — Split layout with warm gradient                     -->
+  <!-- ============================================================ -->
+  <section class="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 py-20 md:py-28">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div>
+          <span class="inline-block px-4 py-1.5 rounded-full text-sm font-semibold mb-6" style="background-color: color-mix(in srgb, {{PRIMARY}} 12%, transparent); color: {{PRIMARY}};">
+            Est. 2006 &middot; Fine Dining
+          </span>
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.12] tracking-tight" style="color: {{TEXT}};">
+            Experience Culinary Excellence
+          </h1>
+          <p class="text-lg leading-relaxed mt-6 max-w-lg opacity-70" style="color: {{TEXT}};">
+            Where seasonal ingredients meet time-honored technique. Every dish tells a story of our passion for flavor, crafted with care and served with warmth in the heart of the city.
+          </p>
+          <div class="flex flex-wrap items-center gap-4 mt-10">
+            <a href="#menu" class="inline-flex items-center gap-2 text-white px-8 py-3.5 rounded-full font-semibold shadow-lg transition hover:opacity-90" style="background-color: {{PRIMARY}}; box-shadow: 0 10px 30px -8px color-mix(in srgb, {{PRIMARY}} 40%, transparent);">
+              View Our Menu
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+            <a href="#reservation" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold border-2 transition hover:opacity-80" style="border-color: {{PRIMARY}}; color: {{PRIMARY}};">
+              Reserve a Table
+            </a>
+          </div>
+        </div>
+        <div class="relative">
+          <img
+            src="https://picsum.photos/seed/restaurant-plating-hero/640/520"
+            alt="Signature dish beautifully plated"
+            class="rounded-3xl ring-4 ring-white shadow-2xl w-full object-cover aspect-[4/3]"
+          />
+          <div class="absolute -bottom-6 -left-6 text-white rounded-2xl px-6 py-4 shadow-lg hidden lg:flex items-center gap-3" style="background-color: {{PRIMARY}};">
+            <i data-lucide="award" class="w-6 h-6"></i>
+            <div>
+              <p class="font-bold text-sm">Michelin Recommended</p>
+              <p class="text-xs opacity-80">2023 &mdash; 2025</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 2. OUR STORY — Two-column narrative                           -->
+  <!-- ============================================================ -->
+  <section class="py-20 md:py-28" style="background-color: {{BG}};">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div>
+          <img
+            src="https://picsum.photos/seed/restaurant-interior-warm/640/480"
+            alt="Warm restaurant interior with ambient lighting"
+            class="rounded-3xl ring-4 ring-white shadow-xl w-full object-cover aspect-[4/3]"
+          />
+        </div>
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-widest mb-4" style="color: {{PRIMARY}};">Our Story</p>
+          <h2 class="text-3xl md:text-4xl font-bold tracking-tight leading-tight" style="color: {{TEXT}};">
+            A Tradition of Craft, Flavor &amp; Gathering
+          </h2>
+          <p class="text-base md:text-lg leading-relaxed mt-6 opacity-70" style="color: {{TEXT}};">
+            What began as a small neighborhood kitchen in 2006 has grown into one of the city's most beloved dining destinations. Chef Isabella Moreau founded {{SITE_NAME}} with a simple belief: extraordinary meals start with extraordinary ingredients and honest preparation.
+          </p>
+          <p class="text-base md:text-lg leading-relaxed mt-4 opacity-70" style="color: {{TEXT}};">
+            Today, every plate that leaves our kitchen reflects nearly two decades of refining recipes passed down through generations, blended with bold seasonal creativity. We source from local farms within a fifty-mile radius, partner with artisan producers, and change our menu with the seasons — because the best food never stays still.
+          </p>
+          <p class="mt-8 italic text-lg" style="color: {{PRIMARY}};">
+            &mdash; Isabella Moreau, Founder &amp; Executive Chef
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 3. SIGNATURE DISHES — Three-card grid                         -->
+  <!-- ============================================================ -->
+  <section id="menu" class="py-20 md:py-28" style="background-color: color-mix(in srgb, {{PRIMARY}} 4%, {{BG}});">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold uppercase tracking-widest mb-4" style="color: {{PRIMARY}};">Seasonal Highlights</p>
+        <h2 class="text-3xl md:text-4xl font-bold tracking-tight" style="color: {{TEXT}};">From Our Kitchen</h2>
+        <p class="mt-4 text-lg max-w-2xl mx-auto opacity-70" style="color: {{TEXT}};">
+          Each dish is crafted daily from ingredients at the peak of their season, prepared with technique refined over years at the pass.
+        </p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Dish 1 -->
+        <div class="rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300" style="background-color: {{SURFACE}};">
+          <img
+            src="https://picsum.photos/seed/chilean-seabass-pan/600/450"
+            alt="Pan-Seared Chilean Sea Bass"
+            class="w-full object-cover aspect-[4/3]"
+          />
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xl font-bold" style="color: {{TEXT}};">Pan-Seared Chilean Sea Bass</h3>
+              <span class="font-bold text-lg" style="color: {{PRIMARY}};">$44</span>
+            </div>
+            <p class="text-sm leading-relaxed opacity-70" style="color: {{TEXT}};">
+              Miso-glazed with baby bok choy, shiitake mushrooms, and a ginger-lemongrass broth finished with toasted sesame.
+            </p>
+          </div>
+        </div>
+
+        <!-- Dish 2 -->
+        <div class="rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300" style="background-color: {{SURFACE}};">
+          <img
+            src="https://picsum.photos/seed/truffle-risotto-plate/600/450"
+            alt="Black Truffle Risotto"
+            class="w-full object-cover aspect-[4/3]"
+          />
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xl font-bold" style="color: {{TEXT}};">Black Truffle Risotto</h3>
+              <span class="font-bold text-lg" style="color: {{PRIMARY}};">$38</span>
+            </div>
+            <p class="text-sm leading-relaxed opacity-70" style="color: {{TEXT}};">
+              Carnaroli rice slow-stirred with aged Parmigiano-Reggiano, shaved Périgord truffle, and a drizzle of brown butter.
+            </p>
+          </div>
+        </div>
+
+        <!-- Dish 3 -->
+        <div class="rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300" style="background-color: {{SURFACE}};">
+          <img
+            src="https://picsum.photos/seed/filet-mignon-herb/600/450"
+            alt="Herb-Crusted Filet Mignon"
+            class="w-full object-cover aspect-[4/3]"
+          />
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xl font-bold" style="color: {{TEXT}};">Herb-Crusted Filet Mignon</h3>
+              <span class="font-bold text-lg" style="color: {{PRIMARY}};">$52</span>
+            </div>
+            <p class="text-sm leading-relaxed opacity-70" style="color: {{TEXT}};">
+              Eight-ounce center-cut beef tenderloin with roasted bone marrow, pommes purée, and a Cabernet reduction.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 4. EXPERIENCE FEATURES — Four-item grid                       -->
+  <!-- ============================================================ -->
+  <section class="py-20 md:py-28" style="background-color: {{BG}};">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold uppercase tracking-widest mb-4" style="color: {{PRIMARY}};">Why Guests Return</p>
+        <h2 class="text-3xl md:text-4xl font-bold tracking-tight" style="color: {{TEXT}};">The {{SITE_NAME}} Experience</h2>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <!-- Feature 1 -->
+        <div class="text-center p-8 rounded-3xl transition hover:shadow-lg" style="background-color: {{SURFACE}};">
+          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5" style="background-color: color-mix(in srgb, {{PRIMARY}} 10%, transparent);">
+            <i data-lucide="leaf" class="w-7 h-7" style="color: {{PRIMARY}};"></i>
+          </div>
+          <h3 class="text-lg font-bold mb-2" style="color: {{TEXT}};">Farm to Table</h3>
+          <p class="text-sm leading-relaxed opacity-70" style="color: {{TEXT}};">
+            We partner with twelve local farms and artisan producers within fifty miles, sourcing ingredients at the peak of flavor.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="text-center p-8 rounded-3xl transition hover:shadow-lg" style="background-color: {{SURFACE}};">
+          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5" style="background-color: color-mix(in srgb, {{PRIMARY}} 10%, transparent);">
+            <i data-lucide="chef-hat" class="w-7 h-7" style="color: {{PRIMARY}};"></i>
+          </div>
+          <h3 class="text-lg font-bold mb-2" style="color: {{TEXT}};">Award-Winning Chef</h3>
+          <p class="text-sm leading-relaxed opacity-70" style="color: {{TEXT}};">
+            Chef Isabella Moreau trained at Le Cordon Bleu and has earned three consecutive James Beard nominations.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="text-center p-8 rounded-3xl transition hover:shadow-lg" style="background-color: {{SURFACE}};">
+          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5" style="background-color: color-mix(in srgb, {{PRIMARY}} 10%, transparent);">
+            <i data-lucide="wine" class="w-7 h-7" style="color: {{PRIMARY}};"></i>
+          </div>
+          <h3 class="text-lg font-bold mb-2" style="color: {{TEXT}};">Curated Wine List</h3>
+          <p class="text-sm leading-relaxed opacity-70" style="color: {{TEXT}};">
+            Over 220 labels hand-selected by our sommelier, from bold Napa Cabernets to rare Burgundy estates and natural wines.
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="text-center p-8 rounded-3xl transition hover:shadow-lg" style="background-color: {{SURFACE}};">
+          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5" style="background-color: color-mix(in srgb, {{PRIMARY}} 10%, transparent);">
+            <i data-lucide="lamp" class="w-7 h-7" style="color: {{PRIMARY}};"></i>
+          </div>
+          <h3 class="text-lg font-bold mb-2" style="color: {{TEXT}};">Intimate Atmosphere</h3>
+          <p class="text-sm leading-relaxed opacity-70" style="color: {{TEXT}};">
+            Exposed brick, candlelight, and soft jazz create a setting designed for conversation, connection, and celebration.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 5. TESTIMONIALS — Three cards on warm background               -->
+  <!-- ============================================================ -->
+  <section class="py-20 md:py-28 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold uppercase tracking-widest mb-4" style="color: {{PRIMARY}};">Guest Reviews</p>
+        <h2 class="text-3xl md:text-4xl font-bold tracking-tight" style="color: {{TEXT}};">What Our Diners Say</h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Testimonial 1 -->
+        <div class="rounded-3xl p-8 relative" style="background-color: {{SURFACE}}; box-shadow: 0 4px 24px -6px rgba(0,0,0,0.06);">
+          <div class="absolute -top-4 left-8 text-6xl font-serif leading-none" style="color: {{PRIMARY}}; opacity: 0.2;">&ldquo;</div>
+          <div class="flex items-center gap-1 mb-4">
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+          </div>
+          <p class="text-base leading-relaxed mb-6 opacity-80" style="color: {{TEXT}};">
+            &ldquo;The truffle risotto was hands-down the best I've ever had — and I lived in Milan for two years. The service was attentive without being intrusive. A truly special evening.&rdquo;
+          </p>
+          <div>
+            <p class="font-bold text-sm" style="color: {{TEXT}};">Margaret &amp; David Chen</p>
+            <p class="text-xs opacity-60" style="color: {{TEXT}};">Anniversary Dinner</p>
+          </div>
+        </div>
+
+        <!-- Testimonial 2 -->
+        <div class="rounded-3xl p-8 relative" style="background-color: {{SURFACE}}; box-shadow: 0 4px 24px -6px rgba(0,0,0,0.06);">
+          <div class="absolute -top-4 left-8 text-6xl font-serif leading-none" style="color: {{PRIMARY}}; opacity: 0.2;">&ldquo;</div>
+          <div class="flex items-center gap-1 mb-4">
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+          </div>
+          <p class="text-base leading-relaxed mb-6 opacity-80" style="color: {{TEXT}};">
+            &ldquo;We hosted a client dinner in the private dining room and everyone was blown away. The sommelier paired wines to each course perfectly. It sealed the deal — literally.&rdquo;
+          </p>
+          <div>
+            <p class="font-bold text-sm" style="color: {{TEXT}};">James Whitfield</p>
+            <p class="text-xs opacity-60" style="color: {{TEXT}};">Business Dinner</p>
+          </div>
+        </div>
+
+        <!-- Testimonial 3 -->
+        <div class="rounded-3xl p-8 relative" style="background-color: {{SURFACE}}; box-shadow: 0 4px 24px -6px rgba(0,0,0,0.06);">
+          <div class="absolute -top-4 left-8 text-6xl font-serif leading-none" style="color: {{PRIMARY}}; opacity: 0.2;">&ldquo;</div>
+          <div class="flex items-center gap-1 mb-4">
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-current" style="color: {{PRIMARY}};"></i>
+          </div>
+          <p class="text-base leading-relaxed mb-6 opacity-80" style="color: {{TEXT}};">
+            &ldquo;From the amuse-bouche to the chocolate fondant, every single course was extraordinary. This is the kind of restaurant you dream about finding. We've already booked our next visit.&rdquo;
+          </p>
+          <div>
+            <p class="font-bold text-sm" style="color: {{TEXT}};">Sofia Ramirez</p>
+            <p class="text-xs opacity-60" style="color: {{TEXT}};">Birthday Celebration</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 6. RESERVATION CTA — Full-width warm gradient                  -->
+  <!-- ============================================================ -->
+  <section id="reservation" class="py-20 md:py-28 relative overflow-hidden" style="background: linear-gradient(135deg, {{PRIMARY}}, color-mix(in srgb, {{PRIMARY}} 70%, #000));">
+    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.2) 0%, transparent 60%);"></div>
+    <div class="relative max-w-4xl mx-auto px-6 text-center">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/15 mb-8">
+        <i data-lucide="calendar" class="w-8 h-8 text-white"></i>
+      </div>
+      <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
+        Reserve Your Table
+      </h2>
+      <p class="text-lg text-white/80 max-w-xl mx-auto mt-6 leading-relaxed">
+        Join us for an evening of exceptional food, thoughtful wine, and warm hospitality. Private dining available for parties of eight or more.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
+        <a href="tel:+12125550198" class="inline-flex items-center gap-3 bg-white text-lg font-bold px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition" style="color: {{PRIMARY}};">
+          <i data-lucide="phone" class="w-5 h-5"></i>
+          (212) 555-0198
+        </a>
+        <a href="#contact" class="inline-flex items-center gap-2 border-2 border-white/40 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/10 transition">
+          <i data-lucide="message-circle" class="w-5 h-5"></i>
+          Book Online
+        </a>
+      </div>
+      <p class="text-white/50 text-sm mt-8">Walk-ins welcome &middot; Private dining &middot; Event catering</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 7. GALLERY — Masonry-style image grid                          -->
+  <!-- ============================================================ -->
+  <section class="py-20 md:py-28" style="background-color: {{BG}};">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold uppercase tracking-widest mb-4" style="color: {{PRIMARY}};">Gallery</p>
+        <h2 class="text-3xl md:text-4xl font-bold tracking-tight" style="color: {{TEXT}};">Moments at {{SITE_NAME}}</h2>
+      </div>
+
+      <div class="columns-2 lg:columns-3 gap-4 space-y-4">
+        <div class="break-inside-avoid">
+          <img
+            src="https://picsum.photos/seed/restaurant-dish-closeup/600/700"
+            alt="Beautifully plated appetizer with microgreens"
+            class="rounded-2xl w-full object-cover hover:opacity-90 transition"
+          />
+        </div>
+        <div class="break-inside-avoid">
+          <img
+            src="https://picsum.photos/seed/restaurant-wine-pour/600/400"
+            alt="Sommelier pouring red wine at table"
+            class="rounded-2xl w-full object-cover hover:opacity-90 transition"
+          />
+        </div>
+        <div class="break-inside-avoid">
+          <img
+            src="https://picsum.photos/seed/restaurant-bar-counter/600/500"
+            alt="Warm bar area with copper accents"
+            class="rounded-2xl w-full object-cover hover:opacity-90 transition"
+          />
+        </div>
+        <div class="break-inside-avoid">
+          <img
+            src="https://picsum.photos/seed/restaurant-dessert-art/600/450"
+            alt="Chocolate fondant with gold leaf"
+            class="rounded-2xl w-full object-cover hover:opacity-90 transition"
+          />
+        </div>
+        <div class="break-inside-avoid">
+          <img
+            src="https://picsum.photos/seed/restaurant-table-setting/600/650"
+            alt="Candlelit table setting for two"
+            class="rounded-2xl w-full object-cover hover:opacity-90 transition"
+          />
+        </div>
+        <div class="break-inside-avoid">
+          <img
+            src="https://picsum.photos/seed/restaurant-kitchen-fire/600/400"
+            alt="Chef preparing a flambe in the open kitchen"
+            class="rounded-2xl w-full object-cover hover:opacity-90 transition"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 8. FOOTER — Warm dark, four columns                           -->
+  <!-- ============================================================ -->
+  <footer class="bg-stone-900 text-stone-300 pt-20 pb-8">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <!-- Brand Column -->
+        <div>
+          <h3 class="text-xl font-bold text-white mb-4">{{SITE_NAME}}</h3>
+          <p class="text-sm leading-relaxed text-stone-400">
+            A neighborhood gem serving seasonal, ingredient-driven cuisine in a warm and welcoming atmosphere since 2006.
+          </p>
+          <div class="flex items-center gap-4 mt-6">
+            <a href="#" class="text-stone-400 hover:text-white transition" aria-label="Instagram">
+              <i data-lucide="instagram" class="w-5 h-5"></i>
+            </a>
+            <a href="#" class="text-stone-400 hover:text-white transition" aria-label="Facebook">
+              <i data-lucide="facebook" class="w-5 h-5"></i>
+            </a>
+            <a href="#" class="text-stone-400 hover:text-white transition" aria-label="Twitter">
+              <i data-lucide="twitter" class="w-5 h-5"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Hours Column -->
+        <div>
+          <h4 class="text-sm font-semibold text-white uppercase tracking-widest mb-5">Hours</h4>
+          <ul class="space-y-3 text-sm text-stone-400">
+            <li class="flex justify-between"><span>Monday &ndash; Thursday</span><span class="text-stone-300">5:00 PM &ndash; 10:00 PM</span></li>
+            <li class="flex justify-between"><span>Friday &ndash; Saturday</span><span class="text-stone-300">5:00 PM &ndash; 11:00 PM</span></li>
+            <li class="flex justify-between"><span>Sunday</span><span class="text-stone-300">4:00 PM &ndash; 9:00 PM</span></li>
+            <li class="flex justify-between"><span>Sunday Brunch</span><span class="text-stone-300">10:30 AM &ndash; 2:30 PM</span></li>
+          </ul>
+        </div>
+
+        <!-- Quick Links Column -->
+        <div>
+          <h4 class="text-sm font-semibold text-white uppercase tracking-widest mb-5">Quick Links</h4>
+          <ul class="space-y-3 text-sm">
+            <li><a href="#menu" class="text-stone-400 hover:text-white transition">Menu</a></li>
+            <li><a href="#reservation" class="text-stone-400 hover:text-white transition">Reservations</a></li>
+            <li><a href="#" class="text-stone-400 hover:text-white transition">Private Dining</a></li>
+            <li><a href="#" class="text-stone-400 hover:text-white transition">Gift Cards</a></li>
+            <li><a href="#" class="text-stone-400 hover:text-white transition">Careers</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact Column -->
+        <div>
+          <h4 class="text-sm font-semibold text-white uppercase tracking-widest mb-5">Contact</h4>
+          <ul class="space-y-3 text-sm text-stone-400">
+            <li class="flex items-start gap-3">
+              <i data-lucide="map-pin" class="w-4 h-4 mt-0.5 shrink-0" style="color: {{PRIMARY}};"></i>
+              <span>247 West Broadway<br />New York, NY 10013</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <i data-lucide="phone" class="w-4 h-4 shrink-0" style="color: {{PRIMARY}};"></i>
+              <a href="tel:+12125550198" class="hover:text-white transition">(212) 555-0198</a>
+            </li>
+            <li class="flex items-center gap-3">
+              <i data-lucide="mail" class="w-4 h-4 shrink-0" style="color: {{PRIMARY}};"></i>
+              <a href="mailto:hello@example.com" class="hover:text-white transition">hello@example.com</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Copyright Bar -->
+      <div class="border-t border-stone-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
+        <p>&copy; 2025 {{SITE_NAME}}. All rights reserved.</p>
+        <div class="flex items-center gap-6">
+          <a href="#" class="hover:text-stone-300 transition">Privacy Policy</a>
+          <a href="#" class="hover:text-stone-300 transition">Terms of Service</a>
+          <a href="#" class="hover:text-stone-300 transition">Accessibility</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{SITE_NAME}} — Creative Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family={{HEADING_FONT}}:wght@400;500;600;700&family={{BODY_FONT}}:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: '{{BODY_FONT}}', sans-serif;
+      color: {{TEXT}};
+      background: {{BG}};
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: '{{HEADING_FONT}}', serif;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in-up         { animation: fadeInUp 0.8s ease-out both; }
+    .fade-in-up-delay-1 { animation: fadeInUp 0.8s ease-out 0.15s both; }
+    .fade-in-up-delay-2 { animation: fadeInUp 0.8s ease-out 0.3s both; }
+    .fade-in-up-delay-3 { animation: fadeInUp 0.8s ease-out 0.45s both; }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- ============================== NAVIGATION ============================== -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-transparent">
+    <div class="max-w-7xl mx-auto px-6 lg:px-10 py-6 flex items-center justify-between">
+      <a href="#" class="text-lg font-semibold tracking-tight text-white">
+        {{SITE_NAME}}
+      </a>
+      <div class="hidden md:flex items-center gap-10">
+        {{NAV_LINKS}}
+      </div>
+      <a
+        href="#contact"
+        class="hidden md:inline-flex text-xs font-medium uppercase tracking-widest text-white border border-white/30 px-5 py-2.5 hover:bg-white hover:text-gray-900 transition-all duration-300"
+      >
+        Start a Project
+      </a>
+    </div>
+  </nav>
+
+  <!-- ============================== 1. HERO ============================== -->
+  <section
+    class="relative min-h-[85vh] flex items-end"
+    style="background: url('https://picsum.photos/seed/agency-studio-dark/1400/900') center/cover no-repeat;"
+  >
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 pb-20 md:pb-28 w-full">
+      <p class="text-xs font-medium uppercase tracking-[0.25em] text-white/70 mb-6 fade-in-up">
+        Award-Winning Studio
+      </p>
+      <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-white max-w-3xl fade-in-up-delay-1">
+        We craft digital experiences that matter
+      </h1>
+      <p class="text-lg md:text-xl text-white/60 max-w-xl leading-relaxed mt-6 fade-in-up-delay-2">
+        A multidisciplinary studio at the intersection of strategy, design, and technology.
+        We build brands that move people and platforms that move industries.
+      </p>
+      <div class="flex flex-wrap items-center gap-8 mt-10 fade-in-up-delay-3">
+        <a
+          href="#work"
+          class="inline-flex items-center gap-3 text-xs font-medium uppercase tracking-[0.2em] text-white border-b border-white/40 pb-1 hover:border-white transition-colors duration-300"
+        >
+          Explore Our Work <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+        <a
+          href="#about"
+          class="inline-flex items-center gap-3 text-xs font-medium uppercase tracking-[0.2em] text-white/50 hover:text-white transition-colors duration-300"
+        >
+          About the Studio
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== 2. INTRO ============================== -->
+  <section class="py-24 md:py-32" style="background: {{BG}};">
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+      <div class="grid md:grid-cols-2 gap-16 md:gap-24 items-start">
+        <div class="border-l-4 pl-8" style="border-color: {{PRIMARY}};">
+          <p class="text-2xl md:text-3xl italic leading-relaxed font-light" style="color: {{TEXT}};">
+            "Great design is not about decoration. It is about making complex ideas feel simple, inevitable, and human."
+          </p>
+        </div>
+        <div class="space-y-6">
+          <p class="text-base leading-relaxed" style="color: {{TEXT}}; opacity: 0.7;">
+            We founded {{SITE_NAME}} on a single conviction: the best work happens when strategy and craft are inseparable. Every brand, every interface, every campaign we produce is rooted in deep audience understanding and shaped by hands that sweat the details.
+          </p>
+          <p class="text-base leading-relaxed" style="color: {{TEXT}}; opacity: 0.7;">
+            Our process is deliberately collaborative. We embed with your team, challenge assumptions early, and prototype relentlessly so the final product is not just beautiful but measurably effective. Twelve years in, that approach still drives everything we do.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== 3. SERVICES ============================== -->
+  <section class="py-24 md:py-32" style="background: {{SURFACE}};">
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+      <p class="text-xs font-medium uppercase tracking-[0.25em] mb-4" style="color: {{PRIMARY}};">
+        What We Do
+      </p>
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-20" style="color: {{TEXT}};">
+        Capabilities
+      </h2>
+
+      <div class="grid md:grid-cols-2 gap-x-16 gap-y-20">
+        <!-- Service 01 -->
+        <div class="group">
+          <span class="text-6xl md:text-7xl font-bold block" style="color: {{TEXT}}; opacity: 0.06;">01</span>
+          <h3 class="text-xl font-semibold -mt-6 mb-4" style="color: {{TEXT}};">Strategy</h3>
+          <p class="text-base leading-relaxed mb-6" style="color: {{TEXT}}; opacity: 0.6;">
+            Market research, competitive audits, and positioning workshops that uncover what makes your brand irreplaceable. We turn insight into a roadmap your entire organization can rally behind.
+          </p>
+          <a href="#" class="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] hover:gap-3 transition-all duration-300" style="color: {{PRIMARY}};">
+            Learn more <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
+
+        <!-- Service 02 -->
+        <div class="group">
+          <span class="text-6xl md:text-7xl font-bold block" style="color: {{TEXT}}; opacity: 0.06;">02</span>
+          <h3 class="text-xl font-semibold -mt-6 mb-4" style="color: {{TEXT}};">Brand Design</h3>
+          <p class="text-base leading-relaxed mb-6" style="color: {{TEXT}}; opacity: 0.6;">
+            Visual identity systems built for longevity. From logo and type to motion language and brand guidelines, we create cohesive identities that resonate across every touchpoint and scale with your ambitions.
+          </p>
+          <a href="#" class="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] hover:gap-3 transition-all duration-300" style="color: {{PRIMARY}};">
+            Learn more <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
+
+        <!-- Service 03 -->
+        <div class="group">
+          <span class="text-6xl md:text-7xl font-bold block" style="color: {{TEXT}}; opacity: 0.06;">03</span>
+          <h3 class="text-xl font-semibold -mt-6 mb-4" style="color: {{TEXT}};">Web Development</h3>
+          <p class="text-base leading-relaxed mb-6" style="color: {{TEXT}}; opacity: 0.6;">
+            Performant, accessible websites and web applications engineered with modern frameworks. We obsess over page speed, interaction polish, and the small details that separate a good site from a memorable one.
+          </p>
+          <a href="#" class="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] hover:gap-3 transition-all duration-300" style="color: {{PRIMARY}};">
+            Learn more <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
+
+        <!-- Service 04 -->
+        <div class="group">
+          <span class="text-6xl md:text-7xl font-bold block" style="color: {{TEXT}}; opacity: 0.06;">04</span>
+          <h3 class="text-xl font-semibold -mt-6 mb-4" style="color: {{TEXT}};">Content</h3>
+          <p class="text-base leading-relaxed mb-6" style="color: {{TEXT}}; opacity: 0.6;">
+            Photography direction, copywriting, and editorial strategy that gives your brand a distinctive voice. We produce content that earns attention instead of interrupting it, from long-form campaigns to social-first storytelling.
+          </p>
+          <a href="#" class="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] hover:gap-3 transition-all duration-300" style="color: {{PRIMARY}};">
+            Learn more <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== 4. FEATURED WORK ============================== -->
+  <section id="work" class="py-24 md:py-32" style="background: {{BG}};">
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+        <div>
+          <p class="text-xs font-medium uppercase tracking-[0.25em] mb-4" style="color: {{PRIMARY}};">
+            Portfolio
+          </p>
+          <h2 class="text-3xl md:text-4xl font-bold tracking-tight" style="color: {{TEXT}};">
+            Selected Projects
+          </h2>
+        </div>
+        <a
+          href="#"
+          class="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] hover:gap-3 transition-all duration-300"
+          style="color: {{PRIMARY}};"
+        >
+          View all projects <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+
+      <!-- Project 1 — Full Width -->
+      <a href="#" class="block group mb-12">
+        <div class="overflow-hidden rounded-lg aspect-[16/9]">
+          <img
+            src="https://picsum.photos/seed/project-rebrand-atlas/1200/675"
+            alt="Atlas Hospitality brand overhaul"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          />
+        </div>
+        <div class="mt-6 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-semibold" style="color: {{TEXT}};">
+              Atlas Hospitality — Brand Overhaul
+            </h3>
+            <p class="text-sm uppercase tracking-[0.2em] mt-1" style="color: {{TEXT}}; opacity: 0.4;">
+              Brand Identity / Strategy
+            </p>
+          </div>
+          <p class="text-base max-w-md" style="color: {{TEXT}}; opacity: 0.6;">
+            A complete identity transformation for a boutique hotel group expanding from three to twelve properties across Europe and North Africa.
+          </p>
+        </div>
+      </a>
+
+      <!-- Projects 2 & 3 — Side by Side -->
+      <div class="grid md:grid-cols-2 gap-10">
+        <a href="#" class="block group">
+          <div class="overflow-hidden rounded-lg aspect-[4/3]">
+            <img
+              src="https://picsum.photos/seed/project-fintech-noma/800/600"
+              alt="Noma Finance platform"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            />
+          </div>
+          <div class="mt-6">
+            <h3 class="text-xl font-semibold" style="color: {{TEXT}};">
+              Noma Finance — Product Platform
+            </h3>
+            <p class="text-sm uppercase tracking-[0.2em] mt-1" style="color: {{TEXT}}; opacity: 0.4;">
+              Web Development / UX
+            </p>
+            <p class="text-base mt-2" style="color: {{TEXT}}; opacity: 0.6;">
+              A consumer-facing investment platform that simplified portfolio management for over 80,000 retail investors in its first year.
+            </p>
+          </div>
+        </a>
+
+        <a href="#" class="block group">
+          <div class="overflow-hidden rounded-lg aspect-[4/3]">
+            <img
+              src="https://picsum.photos/seed/project-campaign-velde/800/600"
+              alt="Velde skincare campaign"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            />
+          </div>
+          <div class="mt-6">
+            <h3 class="text-xl font-semibold" style="color: {{TEXT}};">
+              Velde Skincare — Launch Campaign
+            </h3>
+            <p class="text-sm uppercase tracking-[0.2em] mt-1" style="color: {{TEXT}}; opacity: 0.4;">
+              Content / Art Direction
+            </p>
+            <p class="text-base mt-2" style="color: {{TEXT}}; opacity: 0.6;">
+              A multi-channel launch for a Scandinavian skincare line that generated 12 million impressions and sold out the debut collection in nine days.
+            </p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== 5. ABOUT / TEAM PREVIEW ============================== -->
+  <section id="about" class="py-24 md:py-32" style="background: {{SURFACE}};">
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+      <div class="grid md:grid-cols-2 gap-16 items-center">
+        <div class="overflow-hidden rounded-lg">
+          <img
+            src="https://picsum.photos/seed/agency-team-workshop/800/600"
+            alt="The {{SITE_NAME}} team collaborating in the studio"
+            class="w-full h-full object-cover"
+          />
+        </div>
+        <div>
+          <p class="text-xs font-medium uppercase tracking-[0.25em] mb-4" style="color: {{PRIMARY}};">
+            About Us
+          </p>
+          <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-6" style="color: {{TEXT}};">
+            A team of makers and thinkers
+          </h2>
+          <p class="text-base leading-relaxed mb-4" style="color: {{TEXT}}; opacity: 0.7;">
+            We are designers, engineers, strategists, and writers bound together by the belief that the best work emerges from genuine partnership. Our studio is deliberately small so every client gets senior attention, not a B-team handoff.
+          </p>
+          <p class="text-base leading-relaxed mb-10" style="color: {{TEXT}}; opacity: 0.7;">
+            Based in New York with collaborators in London and Tokyo, we bring a global perspective to every engagement while staying nimble enough to move at startup speed when the moment demands it.
+          </p>
+          <div class="flex flex-wrap gap-10 pt-8 border-t" style="border-color: {{TEXT}}; border-opacity: 0.1;">
+            <div>
+              <p class="text-3xl font-bold" style="color: {{TEXT}};">12+</p>
+              <p class="text-xs uppercase tracking-[0.15em] mt-1" style="color: {{TEXT}}; opacity: 0.5;">
+                Years
+              </p>
+            </div>
+            <div>
+              <p class="text-3xl font-bold" style="color: {{TEXT}};">200+</p>
+              <p class="text-xs uppercase tracking-[0.15em] mt-1" style="color: {{TEXT}}; opacity: 0.5;">
+                Projects
+              </p>
+            </div>
+            <div>
+              <p class="text-3xl font-bold" style="color: {{TEXT}};">15</p>
+              <p class="text-xs uppercase tracking-[0.15em] mt-1" style="color: {{TEXT}}; opacity: 0.5;">
+                Team Members
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== 6. TESTIMONIAL ============================== -->
+  <section class="py-28 md:py-36" style="background: {{BG}};">
+    <div class="max-w-4xl mx-auto px-6 lg:px-10 text-center">
+      <span
+        class="text-8xl md:text-9xl font-bold leading-none block mb-2"
+        style="color: {{PRIMARY}}; opacity: 0.12;"
+      >&ldquo;</span>
+      <blockquote
+        class="text-2xl md:text-3xl leading-relaxed font-light -mt-14 mb-12"
+        style="color: {{TEXT}};"
+      >
+        Working with {{SITE_NAME}} fundamentally changed how we think about our brand. They pushed us past safe ideas, delivered work that outperformed every benchmark we set, and somehow made the entire process feel effortless. They are the rare agency I recommend without hesitation.
+      </blockquote>
+      <div class="flex flex-col items-center gap-4">
+        <img
+          src="https://picsum.photos/seed/testimonial-ceo-portrait/80/80"
+          alt="Sarah Chen"
+          class="w-14 h-14 rounded-full object-cover"
+        />
+        <div>
+          <p class="text-sm font-semibold" style="color: {{TEXT}};">Sarah Chen</p>
+          <p class="text-sm" style="color: {{TEXT}}; opacity: 0.5;">
+            VP of Marketing, Meridian Health
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== 7. CLIENTS ============================== -->
+  <section class="py-20 md:py-28" style="background: {{SURFACE}};">
+    <div class="max-w-7xl mx-auto px-6 lg:px-10 text-center">
+      <p class="text-xs font-medium uppercase tracking-[0.25em] mb-14" style="color: {{TEXT}}; opacity: 0.4;">
+        Trusted By
+      </p>
+      <div class="flex flex-wrap items-center justify-center gap-x-14 gap-y-8">
+        <span class="text-2xl font-bold" style="color: {{TEXT}}; opacity: 0.12;">Meridian Health</span>
+        <span class="text-2xl font-bold" style="color: {{TEXT}}; opacity: 0.12;">Atlas Hospitality</span>
+        <span class="text-2xl font-bold" style="color: {{TEXT}}; opacity: 0.12;">Noma Finance</span>
+        <span class="text-2xl font-bold" style="color: {{TEXT}}; opacity: 0.12;">Velde</span>
+        <span class="text-2xl font-bold" style="color: {{TEXT}}; opacity: 0.12;">Terrace &amp; Co</span>
+        <span class="text-2xl font-bold" style="color: {{TEXT}}; opacity: 0.12;">Kindling Ventures</span>
+        <span class="text-2xl font-bold" style="color: {{TEXT}}; opacity: 0.12;">Oriel Labs</span>
+        <span class="text-2xl font-bold" style="color: {{TEXT}}; opacity: 0.12;">Sabel Studio</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== 8. FOOTER ============================== -->
+  <footer class="bg-gray-950 text-gray-400 py-20">
+    <div class="max-w-7xl mx-auto px-6 lg:px-10">
+      <!-- Top Row -->
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 pb-10 border-b border-white/5">
+        <a href="#" class="text-lg font-semibold tracking-tight text-white">
+          {{SITE_NAME}}
+        </a>
+        <div class="flex flex-wrap items-center gap-8">
+          <a href="#work" class="text-xs uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-colors">
+            Work
+          </a>
+          <a href="#" class="text-xs uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-colors">
+            Services
+          </a>
+          <a href="#about" class="text-xs uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-colors">
+            About
+          </a>
+          <a href="#" class="text-xs uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-colors">
+            Journal
+          </a>
+          <a href="#contact" class="text-xs uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-colors">
+            Contact
+          </a>
+        </div>
+      </div>
+      <!-- Bottom Row -->
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pt-10">
+        <p class="text-xs text-gray-500">
+          &copy; 2025 {{SITE_NAME}}. All rights reserved.
+        </p>
+        <div class="flex items-center gap-6">
+          <a href="#" class="text-gray-500 hover:text-white transition-colors">
+            <i data-lucide="instagram" class="w-4 h-4"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-white transition-colors">
+            <i data-lucide="linkedin" class="w-4 h-4"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-white transition-colors">
+            <i data-lucide="twitter" class="w-4 h-4"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-white transition-colors">
+            <i data-lucide="dribbble" class="w-4 h-4"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

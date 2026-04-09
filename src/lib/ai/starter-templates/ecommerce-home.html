@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{SITE_NAME}} - Designed for How You Live</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family={{HEADING_FONT}}:wght@400;500;600;700&family={{BODY_FONT}}:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: '{{BODY_FONT}}', sans-serif; color: {{TEXT}}; background: {{BG}}; }
+    h1, h2, h3, h4, h5, h6 { font-family: '{{HEADING_FONT}}', serif; }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in-up { animation: fadeInUp 0.7s ease-out both; }
+    .fade-in-up-delay { animation: fadeInUp 0.7s ease-out 0.15s both; }
+    .fade-in-up-delay-2 { animation: fadeInUp 0.7s ease-out 0.3s both; }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- NAVIGATION -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-stone-200/60">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-16">
+      <a href="#" class="text-xl font-semibold tracking-tight" style="font-family: '{{HEADING_FONT}}', serif; color: {{TEXT}};">{{SITE_NAME}}</a>
+      <div class="hidden md:flex items-center gap-8 text-sm font-medium" style="color: {{TEXT}};">
+        {{NAV_LINKS}}
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="#" class="hover:opacity-70 transition-opacity" style="color: {{TEXT}};"><i data-lucide="search" class="w-5 h-5"></i></a>
+        <a href="#" class="hover:opacity-70 transition-opacity" style="color: {{TEXT}};"><i data-lucide="user" class="w-5 h-5"></i></a>
+        <a href="#" class="relative hover:opacity-70 transition-opacity" style="color: {{TEXT}};">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+          <span class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-white text-[10px] flex items-center justify-center font-semibold" style="background: {{PRIMARY}};">2</span>
+        </a>
+        <button class="md:hidden" style="color: {{TEXT}};"><i data-lucide="menu" class="w-5 h-5"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 1. HERO -->
+  <section class="relative min-h-[80vh] flex items-end overflow-hidden">
+    <img src="https://picsum.photos/seed/lifestyle-warm-home/1600/900" alt="Lifestyle collection" class="absolute inset-0 w-full h-full object-cover" />
+    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pb-16 md:pb-24 w-full">
+      <p class="fade-in-up text-xs uppercase tracking-[0.25em] text-white/80 mb-4 font-medium">New Collection</p>
+      <h1 class="fade-in-up-delay text-4xl md:text-6xl lg:text-7xl font-semibold text-white leading-tight max-w-2xl" style="font-family: '{{HEADING_FONT}}', serif;">Designed for how you live</h1>
+      <p class="fade-in-up-delay-2 text-base md:text-lg text-white/80 mt-4 max-w-lg leading-relaxed">Thoughtfully crafted pieces that move with your day, from morning light to evening out.</p>
+      <div class="fade-in-up-delay-2 flex flex-wrap gap-4 mt-8">
+        <a href="#products" class="inline-flex items-center gap-2 rounded-full px-8 py-3 text-sm font-semibold text-white transition-all hover:opacity-90 hover:scale-[1.02]" style="background: {{PRIMARY}};">Shop Now <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
+        <a href="#" class="inline-flex items-center gap-2 rounded-full px-8 py-3 text-sm font-semibold text-white border border-white/40 transition-all hover:bg-white/10">View Lookbook</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. CATEGORIES -->
+  <section class="max-w-7xl mx-auto px-6 lg:px-8 py-20">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <a href="#" class="group relative aspect-[3/4] rounded-2xl overflow-hidden block">
+        <img src="https://picsum.photos/seed/essentials-minimal/600/800" alt="Essentials" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-6">
+          <h3 class="text-xl font-semibold text-white" style="font-family: '{{HEADING_FONT}}', serif;">Essentials</h3>
+          <p class="text-sm text-white/70 mt-1">Everyday foundations</p>
+        </div>
+      </a>
+      <a href="#" class="group relative aspect-[3/4] rounded-2xl overflow-hidden block">
+        <img src="https://picsum.photos/seed/new-arrivals-fashion/600/800" alt="New Arrivals" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-6">
+          <h3 class="text-xl font-semibold text-white" style="font-family: '{{HEADING_FONT}}', serif;">New Arrivals</h3>
+          <p class="text-sm text-white/70 mt-1">Just dropped this week</p>
+        </div>
+      </a>
+      <a href="#" class="group relative aspect-[3/4] rounded-2xl overflow-hidden block">
+        <img src="https://picsum.photos/seed/bestsellers-curated/600/800" alt="Best Sellers" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-6">
+          <h3 class="text-xl font-semibold text-white" style="font-family: '{{HEADING_FONT}}', serif;">Best Sellers</h3>
+          <p class="text-sm text-white/70 mt-1">Your favorites, always in stock</p>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 3. FEATURED PRODUCTS -->
+  <section id="products" class="max-w-7xl mx-auto px-6 lg:px-8 pb-20">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl md:text-4xl font-semibold" style="font-family: '{{HEADING_FONT}}', serif; color: {{TEXT}};">Trending Now</h2>
+      <p class="mt-3 text-stone-500 max-w-md mx-auto">The pieces our community can't stop reaching for this season.</p>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <!-- Product 1 -->
+      <div class="group">
+        <div class="relative aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4">
+          <img src="https://picsum.photos/seed/cotton-tee-product/600/600" alt="The Everyday Tee" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        </div>
+        <h3 class="font-medium text-sm" style="color: {{TEXT}};">The Everyday Tee</h3>
+        <p class="text-xs text-stone-400 mt-0.5">Organic pima cotton, relaxed fit</p>
+        <div class="flex items-center justify-between mt-2">
+          <span class="text-lg font-semibold" style="color: {{TEXT}};">$45</span>
+          <button class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-all hover:opacity-90" style="background: {{PRIMARY}};"><i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i> Add</button>
+        </div>
+      </div>
+      <!-- Product 2 (Sale) -->
+      <div class="group">
+        <div class="relative aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4">
+          <img src="https://picsum.photos/seed/linen-shirt-product/600/600" alt="Coastal Linen Shirt" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <span class="absolute top-3 left-3 rounded-full bg-red-500 text-white text-[10px] font-semibold uppercase tracking-wide px-2.5 py-1">Sale</span>
+        </div>
+        <h3 class="font-medium text-sm" style="color: {{TEXT}};">Coastal Linen Shirt</h3>
+        <p class="text-xs text-stone-400 mt-0.5">Washed linen, breathable weave</p>
+        <div class="flex items-center justify-between mt-2">
+          <div class="flex items-center gap-2">
+            <span class="text-lg font-semibold" style="color: {{PRIMARY}};">$68</span>
+            <span class="text-sm text-stone-400 line-through">$95</span>
+          </div>
+          <button class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-all hover:opacity-90" style="background: {{PRIMARY}};"><i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i> Add</button>
+        </div>
+      </div>
+      <!-- Product 3 -->
+      <div class="group">
+        <div class="relative aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4">
+          <img src="https://picsum.photos/seed/canvas-tote-bag/600/600" alt="Weekend Canvas Tote" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        </div>
+        <h3 class="font-medium text-sm" style="color: {{TEXT}};">Weekend Canvas Tote</h3>
+        <p class="text-xs text-stone-400 mt-0.5">Waxed canvas, leather handles</p>
+        <div class="flex items-center justify-between mt-2">
+          <span class="text-lg font-semibold" style="color: {{TEXT}};">$125</span>
+          <button class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-all hover:opacity-90" style="background: {{PRIMARY}};"><i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i> Add</button>
+        </div>
+      </div>
+      <!-- Product 4 -->
+      <div class="group">
+        <div class="relative aspect-square rounded-xl overflow-hidden bg-gray-50 mb-4">
+          <img src="https://picsum.photos/seed/merino-sweater-knit/600/600" alt="Fireside Merino Sweater" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        </div>
+        <h3 class="font-medium text-sm" style="color: {{TEXT}};">Fireside Merino Sweater</h3>
+        <p class="text-xs text-stone-400 mt-0.5">Extra-fine merino wool, ribbed hem</p>
+        <div class="flex items-center justify-between mt-2">
+          <span class="text-lg font-semibold" style="color: {{TEXT}};">$195</span>
+          <button class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-all hover:opacity-90" style="background: {{PRIMARY}};"><i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i> Add</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. BANNER / PROMO -->
+  <section class="max-w-7xl mx-auto px-6 lg:px-8 pb-20">
+    <div class="rounded-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2">
+      <div class="aspect-[4/3] lg:aspect-auto">
+        <img src="https://picsum.photos/seed/sustainable-craft-workshop/800/600" alt="Sustainable craftsmanship" class="w-full h-full object-cover" />
+      </div>
+      <div class="flex flex-col justify-center p-10 md:p-16" style="background: {{SURFACE}};">
+        <div class="flex items-center gap-2 mb-4">
+          <i data-lucide="leaf" class="w-4 h-4" style="color: {{PRIMARY}};"></i>
+          <span class="text-xs uppercase tracking-[0.2em] font-medium" style="color: {{PRIMARY}};">Our Promise</span>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-semibold leading-tight" style="font-family: '{{HEADING_FONT}}', serif; color: {{TEXT}};">Sustainable by Design</h2>
+        <p class="mt-4 leading-relaxed text-stone-500">Every piece begins with intention. We partner with certified mills, use deadstock fabrics where possible, and ship in 100% recycled packaging. Quality you feel good about, built to last well beyond a single season.</p>
+        <a href="#" class="inline-flex items-center gap-2 rounded-full px-8 py-3 text-sm font-semibold text-white mt-8 w-fit transition-all hover:opacity-90 hover:scale-[1.02]" style="background: {{PRIMARY}};">Learn Our Story <i data-lucide="arrow-right" class="w-4 h-4"></i></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. SOCIAL PROOF -->
+  <section class="py-20" style="background: {{SURFACE}};">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-semibold" style="font-family: '{{HEADING_FONT}}', serif; color: {{TEXT}};">What Our Customers Say</h2>
+        <p class="mt-3 text-stone-500">Real reviews from real people.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Review 1 -->
+        <div class="rounded-2xl p-8 transition-shadow hover:shadow-lg" style="background: {{BG}};">
+          <div class="flex gap-1 mb-4">
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+          </div>
+          <p class="text-sm leading-relaxed text-stone-600">"The Everyday Tee is genuinely the best basics purchase I've ever made. The weight of the cotton is perfect and it's held up beautifully after a dozen washes. Ordered three more."</p>
+          <div class="mt-6 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-stone-200 flex items-center justify-center text-xs font-semibold text-stone-500">JR</div>
+            <div>
+              <p class="text-sm font-medium" style="color: {{TEXT}};">Jessica R.</p>
+              <p class="text-[11px] text-stone-400 flex items-center gap-1"><i data-lucide="badge-check" class="w-3 h-3" style="color: {{PRIMARY}};"></i> Verified Purchase</p>
+            </div>
+          </div>
+        </div>
+        <!-- Review 2 -->
+        <div class="rounded-2xl p-8 transition-shadow hover:shadow-lg" style="background: {{BG}};">
+          <div class="flex gap-1 mb-4">
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+          </div>
+          <p class="text-sm leading-relaxed text-stone-600">"I was skeptical about the price of the Merino Sweater, but it's worth every cent. Incredibly soft, no pilling, and the fit is exactly what I'd been searching for. My new cold-weather staple."</p>
+          <div class="mt-6 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-stone-200 flex items-center justify-center text-xs font-semibold text-stone-500">MT</div>
+            <div>
+              <p class="text-sm font-medium" style="color: {{TEXT}};">Marcus T.</p>
+              <p class="text-[11px] text-stone-400 flex items-center gap-1"><i data-lucide="badge-check" class="w-3 h-3" style="color: {{PRIMARY}};"></i> Verified Purchase</p>
+            </div>
+          </div>
+        </div>
+        <!-- Review 3 -->
+        <div class="rounded-2xl p-8 transition-shadow hover:shadow-lg" style="background: {{BG}};">
+          <div class="flex gap-1 mb-4">
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+          </div>
+          <p class="text-sm leading-relaxed text-stone-600">"The Canvas Tote is stunning. I use it as my daily work bag and get compliments constantly. The leather handles have already started developing a beautiful patina. This brand just gets it."</p>
+          <div class="mt-6 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-stone-200 flex items-center justify-center text-xs font-semibold text-stone-500">SL</div>
+            <div>
+              <p class="text-sm font-medium" style="color: {{TEXT}};">Sarah L.</p>
+              <p class="text-[11px] text-stone-400 flex items-center gap-1"><i data-lucide="badge-check" class="w-3 h-3" style="color: {{PRIMARY}};"></i> Verified Purchase</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. TRUST FEATURES -->
+  <section class="max-w-7xl mx-auto px-6 lg:px-8 py-20">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+      <div>
+        <i data-lucide="truck" class="w-7 h-7 mx-auto mb-3" style="color: {{PRIMARY}};"></i>
+        <h4 class="text-sm font-semibold mb-1" style="color: {{TEXT}};">Free Shipping</h4>
+        <p class="text-xs text-stone-400 leading-relaxed">Complimentary on all orders over $75. Delivered in 3-5 business days.</p>
+      </div>
+      <div>
+        <i data-lucide="refresh-cw" class="w-7 h-7 mx-auto mb-3" style="color: {{PRIMARY}};"></i>
+        <h4 class="text-sm font-semibold mb-1" style="color: {{TEXT}};">Easy Returns</h4>
+        <p class="text-xs text-stone-400 leading-relaxed">30-day hassle-free returns. We'll cover the shipping back to us.</p>
+      </div>
+      <div>
+        <i data-lucide="shield-check" class="w-7 h-7 mx-auto mb-3" style="color: {{PRIMARY}};"></i>
+        <h4 class="text-sm font-semibold mb-1" style="color: {{TEXT}};">Secure Checkout</h4>
+        <p class="text-xs text-stone-400 leading-relaxed">256-bit SSL encryption. Apple Pay, Google Pay, and all major cards.</p>
+      </div>
+      <div>
+        <i data-lucide="headphones" class="w-7 h-7 mx-auto mb-3" style="color: {{PRIMARY}};"></i>
+        <h4 class="text-sm font-semibold mb-1" style="color: {{TEXT}};">Here to Help</h4>
+        <p class="text-xs text-stone-400 leading-relaxed">Real humans, real answers. Chat with us 7 days a week, 9am-9pm.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. INSTAGRAM / LIFESTYLE GRID -->
+  <section class="max-w-7xl mx-auto px-6 lg:px-8 pb-20">
+    <div class="text-center mb-10">
+      <h2 class="text-3xl md:text-4xl font-semibold" style="font-family: '{{HEADING_FONT}}', serif; color: {{TEXT}};">Follow Our Journey</h2>
+      <p class="mt-2 text-stone-400 text-sm">@{{SITE_NAME}} on Instagram</p>
+    </div>
+    <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+      <a href="#" class="group aspect-square overflow-hidden rounded-lg block"><img src="https://picsum.photos/seed/insta-lifestyle-morning/400/400" alt="Instagram post" class="w-full h-full object-cover transition-all duration-300 group-hover:opacity-75 group-hover:scale-105" /></a>
+      <a href="#" class="group aspect-square overflow-hidden rounded-lg block"><img src="https://picsum.photos/seed/insta-flat-lay-product/400/400" alt="Instagram post" class="w-full h-full object-cover transition-all duration-300 group-hover:opacity-75 group-hover:scale-105" /></a>
+      <a href="#" class="group aspect-square overflow-hidden rounded-lg block"><img src="https://picsum.photos/seed/insta-outdoor-model/400/400" alt="Instagram post" class="w-full h-full object-cover transition-all duration-300 group-hover:opacity-75 group-hover:scale-105" /></a>
+      <a href="#" class="group aspect-square overflow-hidden rounded-lg block"><img src="https://picsum.photos/seed/insta-cafe-detail/400/400" alt="Instagram post" class="w-full h-full object-cover transition-all duration-300 group-hover:opacity-75 group-hover:scale-105" /></a>
+      <a href="#" class="group aspect-square overflow-hidden rounded-lg block"><img src="https://picsum.photos/seed/insta-texture-close/400/400" alt="Instagram post" class="w-full h-full object-cover transition-all duration-300 group-hover:opacity-75 group-hover:scale-105" /></a>
+      <a href="#" class="group aspect-square overflow-hidden rounded-lg block"><img src="https://picsum.photos/seed/insta-sunset-golden/400/400" alt="Instagram post" class="w-full h-full object-cover transition-all duration-300 group-hover:opacity-75 group-hover:scale-105" /></a>
+    </div>
+  </section>
+
+  <!-- 8. FOOTER -->
+  <footer class="bg-stone-900 text-stone-300">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 py-16">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
+        <!-- Brand -->
+        <div class="col-span-2 md:col-span-1">
+          <h3 class="text-lg font-semibold text-white mb-3" style="font-family: '{{HEADING_FONT}}', serif;">{{SITE_NAME}}</h3>
+          <p class="text-sm leading-relaxed text-stone-400 mb-5">Thoughtfully made goods for everyday living. Less but better, designed to last.</p>
+          <div class="flex gap-4">
+            <a href="#" class="text-stone-400 hover:text-white transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a>
+            <a href="#" class="text-stone-400 hover:text-white transition-colors"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+            <a href="#" class="text-stone-400 hover:text-white transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+            <a href="#" class="text-stone-400 hover:text-white transition-colors"><i data-lucide="youtube" class="w-5 h-5"></i></a>
+          </div>
+        </div>
+        <!-- Shop -->
+        <div>
+          <h4 class="text-sm font-semibold text-white uppercase tracking-wide mb-4">Shop</h4>
+          <ul class="space-y-2.5 text-sm">
+            <li><a href="#" class="hover:text-white transition-colors">New In</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Best Sellers</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Sale</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Gift Cards</a></li>
+          </ul>
+        </div>
+        <!-- Help -->
+        <div>
+          <h4 class="text-sm font-semibold text-white uppercase tracking-wide mb-4">Help</h4>
+          <ul class="space-y-2.5 text-sm">
+            <li><a href="#" class="hover:text-white transition-colors">FAQs</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Shipping Info</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Returns & Exchanges</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Size Guide</a></li>
+          </ul>
+        </div>
+        <!-- Contact -->
+        <div>
+          <h4 class="text-sm font-semibold text-white uppercase tracking-wide mb-4">Contact</h4>
+          <ul class="space-y-2.5 text-sm">
+            <li class="flex items-center gap-2"><i data-lucide="mail" class="w-4 h-4 text-stone-500"></i> hello@{{SITE_NAME}}.com</li>
+            <li class="flex items-center gap-2"><i data-lucide="phone" class="w-4 h-4 text-stone-500"></i> (800) 555-0199</li>
+            <li class="flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-stone-500"></i> Mon-Fri, 9am-6pm EST</li>
+          </ul>
+        </div>
+      </div>
+      <!-- Newsletter -->
+      <div class="border-t border-stone-800 pt-10 pb-6">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div>
+            <h4 class="text-sm font-semibold text-white mb-1">Stay in the loop</h4>
+            <p class="text-xs text-stone-500">New drops, exclusive offers, and 10% off your first order.</p>
+          </div>
+          <div class="flex w-full md:w-auto">
+            <input type="email" placeholder="Your email address" class="flex-1 md:w-72 rounded-l-full px-5 py-3 text-sm bg-stone-800 border border-stone-700 text-white placeholder-stone-500 focus:outline-none focus:border-stone-500 transition-colors" />
+            <button class="rounded-r-full px-6 py-3 text-sm font-semibold text-white transition-all hover:opacity-90" style="background: {{PRIMARY}};">Subscribe</button>
+          </div>
+        </div>
+      </div>
+      <!-- Copyright -->
+      <div class="border-t border-stone-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-stone-500">
+        <p>&copy; 2026 {{SITE_NAME}}. All rights reserved.</p>
+        <div class="flex gap-5">
+          <a href="#" class="hover:text-stone-300 transition-colors">Privacy Policy</a>
+          <a href="#" class="hover:text-stone-300 transition-colors">Terms of Service</a>
+          <a href="#" class="hover:text-stone-300 transition-colors">Accessibility</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

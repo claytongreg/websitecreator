@@ -243,18 +243,97 @@ export async function generatePageWithAI(ctx: PageGenContext): Promise<PageGenRe
   const bodyFont = style?.fonts?.body ?? "Inter";
   const mood = style?.mood ?? "professional and clean";
 
-  // Select design archetype based on business type + mood
-  const { selectArchetype, getSiteGenSystemPrompt, buildInspirationContext } =
-    await import("@/lib/ai/site-gen-templates");
+  const {
+    selectArchetype,
+    getSiteGenSystemPrompt,
+    buildInspirationContext,
+    selectStarterTemplate,
+    hydrateTemplate,
+  } = await import("@/lib/ai/site-gen-templates");
+
   const archetype = selectArchetype(businessType, mood);
-
-  // Build page-specific content guidance
-  const pageGuidance = getPageGuidance(slug, businessType);
-
-  // Build inspiration context from user-provided reference sites
   const inspirationContext = buildInspirationContext(inspirations);
-
   const systemPrompt = getSiteGenSystemPrompt();
+
+  // -----------------------------------------------------------------------
+  // HOME PAGE: Template-first approach (Divi-style)
+  // Load a curated starter template, hydrate with user's style, then ask AI
+  // to customize the content for this specific business.
+  // -----------------------------------------------------------------------
+  if (slug === "home" || slug === "index") {
+    const rawTemplate = selectStarterTemplate(businessType, description);
+
+    if (rawTemplate) {
+      const hydratedTemplate = hydrateTemplate(rawTemplate, {
+        siteName,
+        primary: colors[3],
+        text: colors[2],
+        bg: colors[0],
+        surface: colors[1],
+        headingFont,
+        bodyFont,
+        navLinks,
+      });
+
+      const templatePrompt = `You are customizing a premium website template for a real business.
+
+BUSINESS NAME: ${siteName}
+BUSINESS DESCRIPTION: ${description}
+BUSINESS TYPE: ${businessType || "General"}
+OTHER PAGES ON SITE: ${allPages.join(", ")}
+${inspirationContext}
+Below is a high-quality starter template that has already been styled with the correct colors, fonts, and navigation. Your job is to CUSTOMIZE the content — rewrite all text, headings, descriptions, testimonials, stats, and calls-to-action to be specific to this business.
+
+CUSTOMIZATION RULES:
+1. KEEP the exact HTML structure, layout, CSS classes, and design patterns. The template's visual design is intentional and premium — do not change it.
+2. REWRITE all text content to be specific to "${siteName}" and the ${businessType} industry. Every heading, paragraph, button label, testimonial, stat, and description must be customized.
+3. KEEP all Tailwind classes, animations, and responsive breakpoints exactly as they are.
+4. KEEP all Lucide icon references (data-lucide attributes) but you may change which icons are used if more appropriate for the business.
+5. KEEP all picsum.photos image URLs but change the seed words to be relevant to this business.
+6. REWRITE testimonials with realistic names, roles, and quotes specific to this business type.
+7. REWRITE stats/numbers to be realistic for a ${businessType} business.
+8. REWRITE CTAs to match what this business would offer (e.g. "Book a Table" for restaurants, "Start Free Trial" for SaaS).
+9. Ensure the navigation links match the site's actual pages: ${allPages.join(", ")}.
+10. Return ONLY the complete HTML document — no markdown, no explanation.
+
+HERE IS THE TEMPLATE TO CUSTOMIZE:
+
+${hydratedTemplate}`;
+
+      try {
+        const { generateText } = await import("@/lib/ai");
+        let pageUsage = { inputTokens: 0, outputTokens: 0 };
+        let result = "";
+        for await (const chunk of generateText(templatePrompt, {
+          model: ctx.model,
+          systemPrompt: `You are an expert web designer customizing a premium website template. Your job is to rewrite the CONTENT of the template to match the specific business, while preserving the visual design, layout structure, and code exactly as-is. Return only raw HTML.`,
+          temperature: 0.5,
+          maxTokens: 16000,
+          onUsage: (usage) => { pageUsage = usage; },
+        })) {
+          result += chunk;
+        }
+
+        let html = result.trim();
+        if (html.startsWith("```html")) html = html.slice(7);
+        if (html.startsWith("```")) html = html.slice(3);
+        if (html.endsWith("```")) html = html.slice(0, -3);
+        html = html.trim();
+
+        if (html.includes("<!DOCTYPE") || html.includes("<html")) {
+          return { html, ...pageUsage };
+        }
+      } catch (error) {
+        console.error(`Template customization failed for "${slug}":`, error);
+        // Fall through to from-scratch generation
+      }
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // OTHER PAGES (or template fallback): Generate from scratch with archetype
+  // -----------------------------------------------------------------------
+  const pageGuidance = getPageGuidance(slug, businessType);
 
   const prompt = `Generate a complete, production-ready HTML page for a website.
 

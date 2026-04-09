@@ -447,6 +447,107 @@ OUTPUT RULES:
 }
 
 // ---------------------------------------------------------------------------
+// Starter template system (Divi-style: AI customizes a template, not from scratch)
+// ---------------------------------------------------------------------------
+
+import { readFileSync } from "fs";
+import { join } from "path";
+
+/** Available starter templates and which business types they match */
+const templateMap: Record<string, { file: string; keywords: string[] }> = {
+  restaurant: {
+    file: "restaurant-home.html",
+    keywords: ["restaurant", "food", "cafe", "bakery", "bar", "bistro", "grill", "pizzeria", "sushi", "dining", "catering"],
+  },
+  saas: {
+    file: "saas-home.html",
+    keywords: ["saas", "software", "tech", "startup", "app", "platform", "tool", "api", "cloud", "ai"],
+  },
+  agency: {
+    file: "agency-home.html",
+    keywords: ["agency", "creative", "design", "marketing", "digital", "advertising", "branding", "media", "pr"],
+  },
+  portfolio: {
+    file: "portfolio-home.html",
+    keywords: ["portfolio", "personal", "photography", "freelance", "photographer", "designer", "artist", "creative"],
+  },
+  ecommerce: {
+    file: "ecommerce-home.html",
+    keywords: ["ecommerce", "e-commerce", "shop", "store", "retail", "boutique", "fashion", "clothing", "jewelry", "product"],
+  },
+  corporate: {
+    file: "corporate-home.html",
+    keywords: ["consulting", "finance", "law", "legal", "accounting", "real estate", "insurance", "corporate", "professional", "enterprise", "b2b"],
+  },
+};
+
+/**
+ * Select the best starter template for a business type.
+ * Returns the raw HTML with placeholder tokens, or null if no match.
+ */
+export function selectStarterTemplate(
+  businessType: string,
+  description?: string
+): string | null {
+  const searchText = `${businessType || ""} ${description || ""}`.toLowerCase();
+
+  // Score each template by keyword match count
+  let bestId: string | null = null;
+  let bestScore = 0;
+
+  for (const [id, tmpl] of Object.entries(templateMap)) {
+    let score = 0;
+    for (const kw of tmpl.keywords) {
+      if (searchText.includes(kw)) score++;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestId = id;
+    }
+  }
+
+  if (!bestId) {
+    // Default to corporate as safest generic template
+    bestId = "corporate";
+  }
+
+  try {
+    const tmpl = templateMap[bestId];
+    const templateDir = join(process.cwd(), "src", "lib", "ai", "starter-templates");
+    return readFileSync(join(templateDir, tmpl.file), "utf-8");
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Replace placeholder tokens in a template with actual values.
+ */
+export function hydrateTemplate(
+  template: string,
+  vars: {
+    siteName: string;
+    primary: string;
+    text: string;
+    bg: string;
+    surface: string;
+    headingFont: string;
+    bodyFont: string;
+    navLinks: string;
+  }
+): string {
+  return template
+    .replace(/\{\{SITE_NAME\}\}/g, vars.siteName)
+    .replace(/\{\{PRIMARY\}\}/g, vars.primary)
+    .replace(/\{\{TEXT\}\}/g, vars.text)
+    .replace(/\{\{BG\}\}/g, vars.bg)
+    .replace(/\{\{SURFACE\}\}/g, vars.surface)
+    .replace(/\{\{HEADING_FONT\}\}/g, vars.headingFont)
+    .replace(/\{\{BODY_FONT\}\}/g, vars.bodyFont)
+    .replace(/\{\{NAV_LINKS\}\}/g, vars.navLinks);
+}
+
+// ---------------------------------------------------------------------------
 // Build inspiration context for the prompt
 // ---------------------------------------------------------------------------
 

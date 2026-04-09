@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{SITE_NAME}} — Ship Faster, Scale Smarter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family={{HEADING_FONT}}:wght@400;500;600;700;800&family={{BODY_FONT}}:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    html { scroll-behavior: smooth; }
+    body { font-family: '{{BODY_FONT}}', sans-serif; color: {{TEXT}}; background: {{BG}}; }
+    h1, h2, h3, h4, h5, h6 { font-family: '{{HEADING_FONT}}', sans-serif; }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in-up { animation: fadeInUp 0.7s ease-out both; }
+    .fade-in-up-delay { animation: fadeInUp 0.7s ease-out 0.15s both; }
+    .fade-in-up-delay-2 { animation: fadeInUp 0.7s ease-out 0.3s both; }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- NAVIGATION -->
+  <nav class="fixed top-0 w-full z-50 bg-gray-950/80 backdrop-blur-xl border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="#" class="text-xl font-bold text-white tracking-tight">{{SITE_NAME}}</a>
+      <div class="hidden md:flex items-center gap-8">
+        {{NAV_LINKS}}
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="#pricing" class="hidden sm:inline-flex text-sm text-gray-300 hover:text-white transition">Sign in</a>
+        <a href="#pricing" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-white shadow-lg shadow-[{{PRIMARY}}]/25" style="background:{{PRIMARY}};">
+          Get Started <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="relative bg-gray-950 pt-32 pb-20 overflow-hidden">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[120px] opacity-30" style="background:{{PRIMARY}};"></div>
+    <div class="relative max-w-5xl mx-auto px-6 text-center">
+      <div class="fade-in-up inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-medium mb-8" style="background:{{PRIMARY}}10;border-color:{{PRIMARY}}30;color:{{PRIMARY}};">
+        <i data-lucide="sparkles" class="w-4 h-4"></i> Now in General Availability — v3.0 launched
+      </div>
+      <h1 class="fade-in-up text-5xl sm:text-6xl lg:text-7xl font-bold text-white tracking-tight leading-[1.08] mb-6">
+        Ship faster,<br />scale smarter
+      </h1>
+      <p class="fade-in-up-delay text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+        {{SITE_NAME}} gives your engineering team a single platform for deployment pipelines, real-time observability, and incident response — so you spend less time firefighting and more time building.
+      </p>
+      <div class="fade-in-up-delay-2 flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+        <a href="#pricing" class="inline-flex items-center gap-2 px-8 py-3.5 text-base font-semibold rounded-xl text-white shadow-xl shadow-[{{PRIMARY}}]/25 transition hover:opacity-90" style="background:{{PRIMARY}};">
+          Start free trial <i data-lucide="arrow-right" class="w-5 h-5"></i>
+        </a>
+        <a href="#features" class="inline-flex items-center gap-2 px-8 py-3.5 text-base font-semibold rounded-xl text-gray-300 border border-white/10 hover:border-white/25 transition">
+          <i data-lucide="play-circle" class="w-5 h-5"></i> Watch demo
+        </a>
+      </div>
+      <div class="fade-in-up-delay-2 relative mx-auto max-w-4xl">
+        <img src="https://picsum.photos/seed/saas-dashboard-hero/1200/680" alt="Product dashboard" class="w-full rounded-xl ring-1 ring-white/10 shadow-2xl" />
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL PROOF -->
+  <section class="bg-gray-950 py-16 border-t border-white/5">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+      <p class="text-sm font-medium text-gray-500 uppercase tracking-widest mb-10">Trusted by 10,000+ teams worldwide</p>
+      <div class="flex flex-wrap items-center justify-center gap-x-14 gap-y-6">
+        <span class="text-xl font-bold text-gray-500 hover:text-gray-300 transition">Acme</span>
+        <span class="text-xl font-bold text-gray-500 hover:text-gray-300 transition">Globex</span>
+        <span class="text-xl font-bold text-gray-500 hover:text-gray-300 transition">Initech</span>
+        <span class="text-xl font-bold text-gray-500 hover:text-gray-300 transition">Umbrella</span>
+        <span class="text-xl font-bold text-gray-500 hover:text-gray-300 transition">Stark</span>
+        <span class="text-xl font-bold text-gray-500 hover:text-gray-300 transition">Weyland</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES GRID -->
+  <section id="features" class="py-24" style="background:{{BG}};">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:{{PRIMARY}};">Platform</p>
+        <h2 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4" style="color:{{TEXT}};">Everything you need</h2>
+        <p class="text-lg max-w-2xl mx-auto" style="color:{{TEXT}};opacity:0.6;">One platform replaces your monitoring stack, deployment toolchain, and half your Slack bots.</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="rounded-2xl p-8 hover:shadow-lg transition" style="background:{{SURFACE}};">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:{{PRIMARY}}15;">
+            <i data-lucide="bar-chart-3" class="w-6 h-6" style="color:{{PRIMARY}};"></i>
+          </div>
+          <h3 class="text-lg font-semibold mb-2" style="color:{{TEXT}};">Analytics Dashboard</h3>
+          <p style="color:{{TEXT}};opacity:0.6;">Track request latency, error rates, and throughput in real time. Drill into P95 and P99 breakdowns without leaving your browser.</p>
+        </div>
+        <div class="rounded-2xl p-8 hover:shadow-lg transition" style="background:{{SURFACE}};">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:{{PRIMARY}}15;">
+            <i data-lucide="users" class="w-6 h-6" style="color:{{PRIMARY}};"></i>
+          </div>
+          <h3 class="text-lg font-semibold mb-2" style="color:{{TEXT}};">Team Collaboration</h3>
+          <p style="color:{{TEXT}};opacity:0.6;">Shared runbooks, inline commenting on incidents, and role-based access controls keep your whole org on the same page.</p>
+        </div>
+        <div class="rounded-2xl p-8 hover:shadow-lg transition" style="background:{{SURFACE}};">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:{{PRIMARY}}15;">
+            <i data-lucide="plug" class="w-6 h-6" style="color:{{PRIMARY}};"></i>
+          </div>
+          <h3 class="text-lg font-semibold mb-2" style="color:{{TEXT}};">API Integration</h3>
+          <p style="color:{{TEXT}};opacity:0.6;">A single REST and GraphQL gateway with SDKs for Node, Python, Go, and Rust. Integrate in under 15 minutes.</p>
+        </div>
+        <div class="rounded-2xl p-8 hover:shadow-lg transition" style="background:{{SURFACE}};">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:{{PRIMARY}}15;">
+            <i data-lucide="workflow" class="w-6 h-6" style="color:{{PRIMARY}};"></i>
+          </div>
+          <h3 class="text-lg font-semibold mb-2" style="color:{{TEXT}};">Automated Workflows</h3>
+          <p style="color:{{TEXT}};opacity:0.6;">Define deployment pipelines, rollback triggers, and alert escalation paths with a visual drag-and-drop builder. No YAML required.</p>
+        </div>
+        <div class="rounded-2xl p-8 hover:shadow-lg transition" style="background:{{SURFACE}};">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:{{PRIMARY}}15;">
+            <i data-lucide="refresh-cw" class="w-6 h-6" style="color:{{PRIMARY}};"></i>
+          </div>
+          <h3 class="text-lg font-semibold mb-2" style="color:{{TEXT}};">Real-time Sync</h3>
+          <p style="color:{{TEXT}};opacity:0.6;">WebSocket-backed state sync ensures every team member sees live data. No stale dashboards, no manual refreshes.</p>
+        </div>
+        <div class="rounded-2xl p-8 hover:shadow-lg transition" style="background:{{SURFACE}};">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style="background:{{PRIMARY}}15;">
+            <i data-lucide="shield-check" class="w-6 h-6" style="color:{{PRIMARY}};"></i>
+          </div>
+          <h3 class="text-lg font-semibold mb-2" style="color:{{TEXT}};">Enterprise Security</h3>
+          <p style="color:{{TEXT}};opacity:0.6;">SOC 2 Type II certified. SSO via SAML and OIDC, audit logs with 365-day retention, and field-level encryption at rest.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCT SHOWCASE -->
+  <section class="py-24 bg-gray-950">
+    <div class="max-w-7xl mx-auto px-6 space-y-32">
+      <!-- Showcase 1 -->
+      <div class="grid lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:{{PRIMARY}};">Observability</p>
+          <h2 class="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-6">Powerful analytics at a glance</h2>
+          <p class="text-gray-400 leading-relaxed mb-4">Surface the signals that matter without drowning in noise. Our anomaly-detection engine learns your baseline traffic patterns and alerts you only when something actually breaks — not every time a metric twitches.</p>
+          <p class="text-gray-400 leading-relaxed mb-8">Customizable dashboards let each team build the view they need, from high-level executive summaries to granular per-endpoint latency heatmaps.</p>
+          <ul class="space-y-3">
+            <li class="flex items-center gap-3 text-gray-300"><i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0" style="color:{{PRIMARY}};"></i> Sub-second metric ingestion across all services</li>
+            <li class="flex items-center gap-3 text-gray-300"><i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0" style="color:{{PRIMARY}};"></i> Correlated traces, logs, and metrics in one view</li>
+            <li class="flex items-center gap-3 text-gray-300"><i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0" style="color:{{PRIMARY}};"></i> Automatic root-cause analysis with ML scoring</li>
+          </ul>
+        </div>
+        <div>
+          <img src="https://picsum.photos/seed/saas-analytics-view/720/520" alt="Analytics dashboard" class="w-full rounded-xl ring-1 ring-white/10 shadow-2xl" />
+        </div>
+      </div>
+      <!-- Showcase 2 -->
+      <div class="grid lg:grid-cols-2 gap-16 items-center">
+        <div class="order-2 lg:order-1">
+          <img src="https://picsum.photos/seed/saas-team-collab/720/520" alt="Team collaboration view" class="w-full rounded-xl ring-1 ring-white/10 shadow-2xl" />
+        </div>
+        <div class="order-1 lg:order-2">
+          <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:{{PRIMARY}};">Collaboration</p>
+          <h2 class="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-6">Collaborate without friction</h2>
+          <p class="text-gray-400 leading-relaxed mb-4">Incident war rooms spin up automatically when an alert fires. Everyone who needs to be there gets paged, a shared timeline starts, and status updates post to your comms channels — Slack, Teams, or Discord.</p>
+          <p class="text-gray-400 leading-relaxed mb-8">After resolution, an AI-generated postmortem draft is waiting for your review. No more losing institutional knowledge because nobody had time to write a retro.</p>
+          <ul class="space-y-3">
+            <li class="flex items-center gap-3 text-gray-300"><i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0" style="color:{{PRIMARY}};"></i> Automatic incident channels with role assignments</li>
+            <li class="flex items-center gap-3 text-gray-300"><i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0" style="color:{{PRIMARY}};"></i> One-click status page updates from the war room</li>
+            <li class="flex items-center gap-3 text-gray-300"><i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0" style="color:{{PRIMARY}};"></i> AI-drafted postmortems with action-item tracking</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="relative bg-gray-950 py-24 overflow-hidden border-t border-white/5">
+    <div class="absolute inset-0 opacity-[0.03]" style="background-image:radial-gradient(circle,rgba(255,255,255,0.8) 1px,transparent 1px);background-size:24px 24px;"></div>
+    <div class="relative max-w-6xl mx-auto px-6">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
+        <div>
+          <p class="text-4xl sm:text-5xl font-bold text-white mb-2">10,000+</p>
+          <p class="text-gray-400 text-sm font-medium uppercase tracking-wider">Engineering teams</p>
+        </div>
+        <div>
+          <p class="text-4xl sm:text-5xl font-bold text-white mb-2">99.9%</p>
+          <p class="text-gray-400 text-sm font-medium uppercase tracking-wider">Uptime SLA</p>
+        </div>
+        <div>
+          <p class="text-4xl sm:text-5xl font-bold text-white mb-2">2M+</p>
+          <p class="text-gray-400 text-sm font-medium uppercase tracking-wider">API calls daily</p>
+        </div>
+        <div>
+          <p class="text-4xl sm:text-5xl font-bold text-white mb-2">150+</p>
+          <p class="text-gray-400 text-sm font-medium uppercase tracking-wider">Countries served</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="py-24" style="background:{{BG}};">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:{{PRIMARY}};">Testimonials</p>
+        <h2 class="text-4xl sm:text-5xl font-bold tracking-tight" style="color:{{TEXT}};">Loved by engineering teams</h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="rounded-2xl p-8" style="background:{{SURFACE}};">
+          <div class="flex gap-1 mb-4">
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+          </div>
+          <p class="leading-relaxed mb-6" style="color:{{TEXT}};opacity:0.7;">"We cut our mean-time-to-recovery from 47 minutes to under 9. The automated incident routing alone saved us from hiring two more on-call engineers."</p>
+          <div class="flex items-center gap-4">
+            <img src="https://picsum.photos/seed/testimonial-sarah/48/48" alt="Sarah Chen" class="w-12 h-12 rounded-full object-cover" />
+            <div>
+              <p class="font-semibold text-sm" style="color:{{TEXT}};">Sarah Chen</p>
+              <p class="text-sm" style="color:{{TEXT}};opacity:0.5;">CTO, Skyline Robotics</p>
+            </div>
+          </div>
+        </div>
+        <div class="rounded-2xl p-8" style="background:{{SURFACE}};">
+          <div class="flex gap-1 mb-4">
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+          </div>
+          <p class="leading-relaxed mb-6" style="color:{{TEXT}};opacity:0.7;">"The deployment pipeline builder replaced three internal tools and a 600-line Jenkinsfile. Our release cycle went from weekly to multiple times per day."</p>
+          <div class="flex items-center gap-4">
+            <img src="https://picsum.photos/seed/testimonial-marcus/48/48" alt="Marcus Rivera" class="w-12 h-12 rounded-full object-cover" />
+            <div>
+              <p class="font-semibold text-sm" style="color:{{TEXT}};">Marcus Rivera</p>
+              <p class="text-sm" style="color:{{TEXT}};opacity:0.5;">VP Engineering, Neon Health</p>
+            </div>
+          </div>
+        </div>
+        <div class="rounded-2xl p-8" style="background:{{SURFACE}};">
+          <div class="flex gap-1 mb-4">
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+          </div>
+          <p class="leading-relaxed mb-6" style="color:{{TEXT}};opacity:0.7;">"I evaluated six platforms before choosing {{SITE_NAME}}. The correlated tracing view alone justified the switch — we found a database bottleneck in our first hour."</p>
+          <div class="flex items-center gap-4">
+            <img src="https://picsum.photos/seed/testimonial-priya/48/48" alt="Priya Kapoor" class="w-12 h-12 rounded-full object-cover" />
+            <div>
+              <p class="font-semibold text-sm" style="color:{{TEXT}};">Priya Kapoor</p>
+              <p class="text-sm" style="color:{{TEXT}};opacity:0.5;">Head of Product, FinLedger</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" class="py-24 bg-gray-950">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:{{PRIMARY}};">Pricing</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-4">Simple, transparent pricing</h2>
+        <p class="text-lg text-gray-400 max-w-xl mx-auto">No hidden fees. No per-seat surprises. Pick the plan that fits your stage and scale as you grow.</p>
+      </div>
+      <div class="grid lg:grid-cols-3 gap-8 items-start">
+        <!-- Starter -->
+        <div class="rounded-2xl p-8 border border-white/10 bg-gray-900">
+          <h3 class="text-lg font-semibold text-white mb-1">Starter</h3>
+          <p class="text-sm text-gray-400 mb-6">For small teams getting started</p>
+          <div class="mb-6">
+            <span class="text-5xl font-bold text-white">$29</span>
+            <span class="text-gray-400 text-base">/month</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> Up to 5 team members</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> 100K API calls/month</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> 7-day metric retention</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> Community support</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> 3 deployment pipelines</li>
+          </ul>
+          <a href="#" class="block w-full py-3 text-center text-sm font-semibold rounded-xl border border-white/10 text-white hover:border-white/25 transition">Get Started</a>
+        </div>
+        <!-- Pro (Popular) -->
+        <div class="rounded-2xl p-8 bg-gray-900 scale-105 ring-2 relative" style="ring-color:{{PRIMARY}};box-shadow:0 0 40px {{PRIMARY}}15;">
+          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold text-white" style="background:{{PRIMARY}};">Most Popular</div>
+          <h3 class="text-lg font-semibold text-white mb-1">Pro</h3>
+          <p class="text-sm text-gray-400 mb-6">For growing engineering orgs</p>
+          <div class="mb-6">
+            <span class="text-5xl font-bold text-white">$99</span>
+            <span class="text-gray-400 text-base">/month</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> Up to 25 team members</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> 2M API calls/month</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> 90-day metric retention</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> Priority support (4hr SLA)</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> Unlimited pipelines</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> SSO & audit logs</li>
+          </ul>
+          <a href="#" class="block w-full py-3 text-center text-sm font-bold rounded-xl text-white transition hover:opacity-90" style="background:{{PRIMARY}};">Start Free Trial</a>
+        </div>
+        <!-- Enterprise -->
+        <div class="rounded-2xl p-8 border border-white/10 bg-gray-900">
+          <h3 class="text-lg font-semibold text-white mb-1">Enterprise</h3>
+          <p class="text-sm text-gray-400 mb-6">For security-conscious orgs at scale</p>
+          <div class="mb-6">
+            <span class="text-5xl font-bold text-white">Custom</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> Unlimited team members</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> Unlimited API calls</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> 365-day retention</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> Dedicated support engineer</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> Custom SLA & BAA</li>
+            <li class="flex items-center gap-3 text-gray-300 text-sm"><i data-lucide="check" class="w-4 h-4 flex-shrink-0" style="color:{{PRIMARY}};"></i> On-premise deployment option</li>
+          </ul>
+          <a href="#" class="block w-full py-3 text-center text-sm font-semibold rounded-xl border border-white/10 text-white hover:border-white/25 transition">Contact Sales</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-24 border-t border-white/5" style="background:{{BG}};">
+    <div class="max-w-3xl mx-auto px-6 text-center">
+      <h2 class="text-4xl sm:text-5xl font-bold tracking-tight mb-6" style="color:{{TEXT}};">Ready to transform your workflow?</h2>
+      <p class="text-lg mb-10" style="color:{{TEXT}};opacity:0.6;">Join thousands of engineering teams that shipped their best work with {{SITE_NAME}}. Start your free 14-day trial — no credit card required.</p>
+      <a href="#pricing" class="inline-flex items-center gap-2 px-10 py-4 text-base font-bold rounded-xl text-white shadow-xl shadow-[{{PRIMARY}}]/25 transition hover:opacity-90" style="background:{{PRIMARY}};">
+        Get started for free <i data-lucide="arrow-right" class="w-5 h-5"></i>
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="bg-gray-950 border-t border-white/5 pt-16 pb-8">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-10 mb-16">
+        <div>
+          <h4 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Product</h4>
+          <ul class="space-y-3 text-sm text-gray-400">
+            <li><a href="#features" class="hover:text-white transition">Features</a></li>
+            <li><a href="#pricing" class="hover:text-white transition">Pricing</a></li>
+            <li><a href="#" class="hover:text-white transition">Integrations</a></li>
+            <li><a href="#" class="hover:text-white transition">Changelog</a></li>
+            <li><a href="#" class="hover:text-white transition">Documentation</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Company</h4>
+          <ul class="space-y-3 text-sm text-gray-400">
+            <li><a href="#" class="hover:text-white transition">About</a></li>
+            <li><a href="#" class="hover:text-white transition">Blog</a></li>
+            <li><a href="#" class="hover:text-white transition">Careers</a></li>
+            <li><a href="#" class="hover:text-white transition">Press</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Resources</h4>
+          <ul class="space-y-3 text-sm text-gray-400">
+            <li><a href="#" class="hover:text-white transition">Help Center</a></li>
+            <li><a href="#" class="hover:text-white transition">API Reference</a></li>
+            <li><a href="#" class="hover:text-white transition">Status Page</a></li>
+            <li><a href="#" class="hover:text-white transition">Community</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-white uppercase tracking-wider mb-4">Legal</h4>
+          <ul class="space-y-3 text-sm text-gray-400">
+            <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+            <li><a href="#" class="hover:text-white transition">Terms of Service</a></li>
+            <li><a href="#" class="hover:text-white transition">Cookie Policy</a></li>
+            <li><a href="#" class="hover:text-white transition">DPA</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/5">
+        <p class="text-sm text-gray-500">&copy; 2026 {{SITE_NAME}}. All rights reserved.</p>
+        <div class="flex items-center gap-5">
+          <a href="#" class="text-gray-500 hover:text-white transition"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+          <a href="#" class="text-gray-500 hover:text-white transition"><i data-lucide="github" class="w-5 h-5"></i></a>
+          <a href="#" class="text-gray-500 hover:text-white transition"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
+          <a href="#" class="text-gray-500 hover:text-white transition"><i data-lucide="youtube" class="w-5 h-5"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>
