@@ -239,7 +239,7 @@ export default function NewSitePage() {
       </main>
 
       {step !== "generating" && (
-        <footer className="border-t">
+        <footer className="border-t sticky bottom-0 bg-background z-10">
           <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
             <Button variant="ghost" onClick={handleBack}>
               <ArrowLeft className="w-4 h-4 mr-2" />
