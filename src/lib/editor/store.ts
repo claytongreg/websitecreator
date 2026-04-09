@@ -72,6 +72,36 @@ interface EditorState {
   commitStyleChange: (afterHtml: string, elementPath: string, updatedComputedStyle?: Record<string, string>) => void;
 }
 
+// Hydrate session cost from sessionStorage so it survives page reloads / navigations
+const COST_STORAGE_KEY = "echowebo_session_cost";
+
+function loadPersistedCost(): { sessionCostCents: number; sessionEdits: SessionEdit[] } {
+  if (typeof window === "undefined") return { sessionCostCents: 0, sessionEdits: [] };
+  try {
+    const raw = sessionStorage.getItem(COST_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        sessionCostCents: parsed.sessionCostCents ?? 0,
+        sessionEdits: parsed.sessionEdits ?? [],
+      };
+    }
+  } catch { /* ignore */ }
+  return { sessionCostCents: 0, sessionEdits: [] };
+}
+
+function persistCost(costCents: number, edits: SessionEdit[]) {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(
+      COST_STORAGE_KEY,
+      JSON.stringify({ sessionCostCents: costCents, sessionEdits: edits })
+    );
+  } catch { /* quota exceeded — ignore */ }
+}
+
+const initialCost = loadPersistedCost();
+
 export const useEditorStore = create<EditorState>((set, get) => ({
   html: "",
   css: "",
@@ -82,8 +112,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   historyIndex: -1,
   isAiLoading: false,
   aiStreamContent: "",
-  sessionCostCents: 0,
-  sessionEdits: [],
+  sessionCostCents: initialCost.sessionCostCents,
+  sessionEdits: initialCost.sessionEdits,
   isPhotoWidgetOpen: false,
   screenshotMode: false,
   screenshotDataUrl: null,
@@ -151,12 +181,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setAiLoading: (loading) => set({ isAiLoading: loading }),
   setAiStreamContent: (content) => set({ aiStreamContent: content }),
   addCost: (cents) =>
-    set((s) => ({ sessionCostCents: s.sessionCostCents + cents })),
+    set((s) => {
+      const newCost = s.sessionCostCents + cents;
+      persistCost(newCost, s.sessionEdits);
+      return { sessionCostCents: newCost };
+    }),
   addEdit: (edit) =>
-    set((s) => ({
-      sessionCostCents: s.sessionCostCents + edit.costCents,
-      sessionEdits: [...s.sessionEdits, edit],
-    })),
+    set((s) => {
+      const newCost = s.sessionCostCents + edit.costCents;
+      const newEdits = [...s.sessionEdits, edit];
+      persistCost(newCost, newEdits);
+      return { sessionCostCents: newCost, sessionEdits: newEdits };
+    }),
   setPhotoWidgetOpen: (open) => set({ isPhotoWidgetOpen: open }),
   setScreenshotMode: (on) => set({ screenshotMode: on }),
   setScreenshotDataUrl: (url) => set({ screenshotDataUrl: url }),
