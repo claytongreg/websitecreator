@@ -174,23 +174,13 @@ export async function POST(req: NextRequest) {
             subdomain: finalSubdomain,
             pages: { create: pageData },
             inspirations: {
-              create: (inspirations ?? []).map(
-                (insp: {
-                  url: string;
-                  style: {
-                    colors: string[];
-                    fonts: unknown[];
-                    layout: string;
-                    mood: string;
-                  };
-                }) => ({
-                  sourceUrl: insp.url,
-                  colors: insp.style.colors,
-                  fonts: insp.style.fonts,
-                  layout: insp.style.layout,
-                  mood: insp.style.mood,
-                })
-              ),
+              create: (inspirations ?? []).map((insp) => ({
+                sourceUrl: insp.url,
+                colors: insp.style.colors,
+                fonts: insp.style.fonts as Record<string, unknown>[],
+                layout: insp.style.layout,
+                mood: insp.style.mood,
+              })),
             },
           },
           include: { pages: true },
