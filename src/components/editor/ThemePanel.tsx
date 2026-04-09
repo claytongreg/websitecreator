@@ -4,12 +4,15 @@ import { useEffect } from "react";
 import { useEditorStore } from "@/lib/editor/store";
 import {
   FONT_OPTIONS,
+  FONT_CATEGORIES,
   FONT_WEIGHT_OPTIONS,
 } from "@/lib/editor/theme-css";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -45,11 +48,20 @@ function FontSelect({
             <span style={{ fontFamily: `'${value}', sans-serif` }}>{value}</span>
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="max-h-64">
-          {FONT_OPTIONS.map((font) => (
-            <SelectItem key={font} value={font}>
-              <span style={{ fontFamily: `'${font}', sans-serif` }}>{font}</span>
-            </SelectItem>
+        <SelectContent className="max-h-72">
+          {FONT_CATEGORIES.map((cat) => (
+            <SelectGroup key={cat.label}>
+              <SelectLabel className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                {cat.label}
+              </SelectLabel>
+              {cat.fonts.map((font) => (
+                <SelectItem key={font} value={font}>
+                  <span style={{ fontFamily: `'${font}', sans-serif` }}>
+                    {font}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectGroup>
           ))}
         </SelectContent>
       </Select>

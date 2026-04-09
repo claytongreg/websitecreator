@@ -10,7 +10,9 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -21,7 +23,7 @@ import {
   AlignRight,
   AlignJustify,
 } from "lucide-react";
-import { FONT_OPTIONS } from "@/lib/editor/theme-css";
+import { FONT_OPTIONS, FONT_CATEGORIES } from "@/lib/editor/theme-css";
 
 const PREVIEW_FONTS_URL = `https://fonts.googleapis.com/css2?${FONT_OPTIONS.map(
   (f) => `family=${f.replace(/ /g, "+")}`
@@ -98,13 +100,20 @@ export function TypographySection({
               </span>
             </SelectValue>
           </SelectTrigger>
-          <SelectContent>
-            {FONT_OPTIONS.map((font) => (
-              <SelectItem key={font} value={font} className="text-xs">
-                <span style={{ fontFamily: `'${font}', sans-serif` }}>
-                  {font}
-                </span>
-              </SelectItem>
+          <SelectContent className="max-h-72">
+            {FONT_CATEGORIES.map((cat) => (
+              <SelectGroup key={cat.label}>
+                <SelectLabel className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                  {cat.label}
+                </SelectLabel>
+                {cat.fonts.map((font) => (
+                  <SelectItem key={font} value={font} className="text-xs">
+                    <span style={{ fontFamily: `'${font}', sans-serif` }}>
+                      {font}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             ))}
           </SelectContent>
         </Select>

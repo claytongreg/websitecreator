@@ -13,7 +13,8 @@ export const DEFAULT_THEME: ThemeSettings = {
   baseFontSize: "16px",
 };
 
-export const FONT_OPTIONS = [
+// Sans-serif — clean, modern
+const SANS_SERIF_FONTS = [
   "Inter",
   "Roboto",
   "Open Sans",
@@ -21,19 +22,80 @@ export const FONT_OPTIONS = [
   "Montserrat",
   "Poppins",
   "Raleway",
-  "Playfair Display",
-  "Merriweather",
-  "Source Sans 3",
   "Nunito",
   "PT Sans",
   "Work Sans",
   "DM Sans",
-  "Libre Baskerville",
-  "Crimson Text",
+  "Source Sans 3",
   "Josefin Sans",
   "Outfit",
   "Space Grotesk",
+  "Figtree",
+  "Manrope",
+  "Sora",
+  "Plus Jakarta Sans",
+  "Albert Sans",
+  "Lexend",
+  "Onest",
+];
+
+// Serif — elegant, editorial
+const SERIF_FONTS = [
+  "Playfair Display",
+  "Merriweather",
+  "Libre Baskerville",
+  "Crimson Text",
   "Bitter",
+  "Lora",
+  "EB Garamond",
+  "Cormorant Garamond",
+  "Noto Serif",
+  "Spectral",
+  "Fraunces",
+  "Instrument Serif",
+];
+
+// Display — creative, bold
+const DISPLAY_FONTS = [
+  "Bebas Neue",
+  "Archivo Black",
+  "Righteous",
+  "Titan One",
+  "Fredoka",
+  "Dela Gothic One",
+];
+
+// Handwriting — casual, personal
+const HANDWRITING_FONTS = [
+  "Caveat",
+  "Dancing Script",
+  "Pacifico",
+  "Satisfy",
+  "Kalam",
+];
+
+// Monospace — code, technical
+const MONOSPACE_FONTS = [
+  "JetBrains Mono",
+  "Fira Code",
+  "IBM Plex Mono",
+  "Source Code Pro",
+];
+
+export const FONT_CATEGORIES = [
+  { label: "Sans Serif", fonts: SANS_SERIF_FONTS },
+  { label: "Serif", fonts: SERIF_FONTS },
+  { label: "Display", fonts: DISPLAY_FONTS },
+  { label: "Handwriting", fonts: HANDWRITING_FONTS },
+  { label: "Monospace", fonts: MONOSPACE_FONTS },
+] as const;
+
+export const FONT_OPTIONS = [
+  ...SANS_SERIF_FONTS,
+  ...SERIF_FONTS,
+  ...DISPLAY_FONTS,
+  ...HANDWRITING_FONTS,
+  ...MONOSPACE_FONTS,
 ];
 
 export const FONT_WEIGHT_OPTIONS = [
@@ -60,14 +122,15 @@ function googleFontsUrl(fonts: { heading: string; body: string }): string {
 export function generateThemeCss(theme: ThemeSettings): string {
   const levels = ["h1", "h2", "h3", "h4", "h5", "h6"] as const;
 
+  // Use :where() for zero specificity so inline styles always win
   const headingRules = levels
     .map((tag) => {
       const s = theme.headingSizes[tag];
-      return `${tag} { font-family: '${theme.fonts.heading}', sans-serif !important; font-size: ${s.size} !important; font-weight: ${s.weight} !important; line-height: ${s.lineHeight} !important; }`;
+      return `:where(${tag}) { font-family: '${theme.fonts.heading}', sans-serif; font-size: ${s.size}; font-weight: ${s.weight}; line-height: ${s.lineHeight}; }`;
     })
     .join("\n");
 
-  return `body { font-family: '${theme.fonts.body}', sans-serif !important; font-size: ${theme.baseFontSize} !important; }
+  return `:where(body) { font-family: '${theme.fonts.body}', sans-serif; font-size: ${theme.baseFontSize}; }
 ${headingRules}`;
 }
 
