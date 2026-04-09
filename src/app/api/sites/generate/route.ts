@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   const pages = body.pages as unknown[];
   const inspirations = body.inspirations as {
     url: string;
-    style: { colors: string[]; fonts: { family: string }[]; layout: string; mood: string };
+    style: { colors: string[]; fonts: { family: string; weight?: string; usage?: string }[]; layout: string; mood: string };
   }[] | undefined;
   const style = body.style as { colors?: string[]; fonts?: { heading: string; body: string }; mood?: string } | undefined;
   const model = (body.model as string) || "claude-opus-4-20250514";
@@ -177,7 +177,7 @@ export async function POST(req: NextRequest) {
               create: (inspirations ?? []).map((insp) => ({
                 sourceUrl: insp.url,
                 colors: insp.style.colors,
-                fonts: insp.style.fonts as Record<string, unknown>[],
+                fonts: insp.style.fonts,
                 layout: insp.style.layout,
                 mood: insp.style.mood,
               })),
