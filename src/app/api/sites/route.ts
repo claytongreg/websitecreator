@@ -233,6 +233,7 @@ export async function generatePageWithAI(ctx: PageGenContext): Promise<PageGenRe
     description,
     businessType,
     style,
+    inspirations,
     navLinks,
     allPages,
   } = ctx;
@@ -242,10 +243,20 @@ export async function generatePageWithAI(ctx: PageGenContext): Promise<PageGenRe
   const bodyFont = style?.fonts?.body ?? "Inter";
   const mood = style?.mood ?? "professional and clean";
 
+  // Select design archetype based on business type + mood
+  const { selectArchetype, getSiteGenSystemPrompt, buildInspirationContext } =
+    await import("@/lib/ai/site-gen-templates");
+  const archetype = selectArchetype(businessType, mood);
+
   // Build page-specific content guidance
   const pageGuidance = getPageGuidance(slug, businessType);
 
-  const prompt = `Generate a complete, production-ready HTML page for a website. This must look like a premium, high-end theme — the kind you'd see on ThemeForest's top sellers or 10web's AI builder. Rich, polished, modern, and full of content.
+  // Build inspiration context from user-provided reference sites
+  const inspirationContext = buildInspirationContext(inspirations);
+
+  const systemPrompt = getSiteGenSystemPrompt();
+
+  const prompt = `Generate a complete, production-ready HTML page for a website.
 
 SITE NAME: ${siteName}
 BUSINESS: ${description}
@@ -257,96 +268,38 @@ STYLE:
 - Color palette: background ${colors[0]}, surface ${colors[1]}, text ${colors[2]}, primary accent ${colors[3]}, secondary ${colors[4]}
 - Heading font: ${headingFont}
 - Body font: ${bodyFont}
-- Mood: ${mood}
-
+- Design direction: ${archetype.name} — ${archetype.mood}
+${inspirationContext}
 PAGE CONTENT GUIDANCE:
 ${pageGuidance}
 
-DESIGN SYSTEM (follow strictly — this creates a premium look):
+${archetype.designSystem}
 
 ICONS:
 - Use Lucide icons everywhere — NEVER use emoji icons.
 - Usage: <i data-lucide="icon-name" class="w-6 h-6"></i>
-- For feature cards use a styled icon wrapper: <div class="w-14 h-14 rounded-2xl bg-[${colors[3]}]/10 flex items-center justify-center mb-5"><i data-lucide="icon-name" class="w-7 h-7 text-[${colors[3]}]"></i></div>
 - Common icons: rocket, lightbulb, shield-check, zap, target, star, users, bar-chart-3, check-circle, arrow-right, phone, mail, map-pin, clock, globe, heart, award, trending-up, layers, settings
-
-NAVIGATION:
-- Sticky glassmorphic header: sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200/50 transition-all duration-300
-- Logo uses font-bold text-xl with primary color
-- Nav links: text-sm font-medium text-gray-600 hover:text-[${colors[3]}] transition-colors
-- Include a CTA button in the nav: px-5 py-2 rounded-lg text-sm font-semibold bg-[${colors[3]}] text-white hover:opacity-90 transition
-
-HERO SECTIONS:
-- Use min-h-[80vh] flex items-center for hero impact
-- Background image with GRADIENT overlay: bg-gradient-to-r from-black/70 via-black/50 to-transparent (not flat bg-black/50)
-- Add an eyebrow label above the heading: <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur text-sm font-medium text-white/90 mb-6"><i data-lucide="sparkles" class="w-4 h-4"></i> Tagline here</span>
-- Hero heading: text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]
-- Hero subtitle: text-lg md:text-xl text-white/80 max-w-2xl
-- Hero CTA buttons: primary with shadow-lg shadow-[${colors[3]}]/25, and a ghost variant with border-white/30
-
-SECTIONS:
-- Generous spacing: py-20 md:py-32 vertical padding for breathing room
-- Container: max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
-- Alternate backgrounds: use bg-gradient-to-b from-white to-gray-50/50 and plain ${colors[0]} alternating
-- Each section starts with an eyebrow + heading combo:
-  <div class="text-center mb-16">
-    <span class="text-sm font-semibold tracking-widest uppercase text-[${colors[3]}]">Section Label</span>
-    <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mt-3">Section Heading</h2>
-    <p class="text-lg text-gray-500 max-w-2xl mx-auto mt-4">Subtitle text here.</p>
-  </div>
-- Add decorative blur blobs behind key sections: <div class="absolute -top-40 -right-40 w-80 h-80 bg-[${colors[3]}]/5 rounded-full blur-3xl pointer-events-none"></div> (parent needs relative overflow-hidden)
-
-CARDS:
-- Modern card style: bg-white rounded-2xl border border-gray-100 p-8 hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1 transition-all duration-300 group
-- Feature cards: add a colored top border: border-t-4 border-[${colors[3]}] (use on some, not all, for variety)
-- Card icon should animate on hover: group-hover:scale-110 transition-transform
-- Testimonial cards: add a large quote mark using a styled span: <span class="text-5xl text-[${colors[3]}]/20 font-serif leading-none">"</span>
-
-BUTTONS:
-- Primary: px-8 py-3.5 rounded-xl font-semibold bg-[${colors[3]}] text-white shadow-lg shadow-[${colors[3]}]/25 hover:shadow-xl hover:shadow-[${colors[3]}]/30 hover:-translate-y-0.5 transition-all duration-300 inline-flex items-center gap-2
-- Add arrow icon to CTA buttons: <i data-lucide="arrow-right" class="w-4 h-4"></i>
-- Ghost variant: px-8 py-3.5 rounded-xl font-semibold border-2 border-gray-200 text-gray-700 hover:border-[${colors[3]}] hover:text-[${colors[3]}] transition-all
-
-TYPOGRAPHY:
-- All headings: tracking-tight for modern feel
-- Body text: text-gray-600 leading-relaxed (not raw ${colors[2]} everywhere — use the text color for headings, gray-600 for body)
-- Hero h1: text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight
-- Section h2: text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight
-- Card h3: text-xl font-semibold
-- Small text/labels: text-sm font-medium tracking-wide uppercase
 
 IMAGES:
 - Use https://picsum.photos/seed/{unique-seed}/{width}/{height} for ALL images
-- Use different seed words per image
-- Treatment: rounded-2xl object-cover with subtle ring: ring-1 ring-gray-200/50
-- Use aspect-video for landscape images, aspect-square for portraits
-- Hero images: no rounding (full-width background)
+- Use different seed words per image (related to the content)
 
 GRIDS:
 - Card grids: grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8
 - Two-column content: grid md:grid-cols-2 gap-16 items-center (generous gap)
 
-SECTION DIVIDERS (use 1-2 per page for visual interest):
-- Angled section transition using clip-path on a div: <div class="h-24 -mt-1" style="clip-path: polygon(0 0, 100% 60%, 100% 100%, 0 100%); background: ${colors[1]}"></div>
-- Or a subtle wave SVG between sections
-
 ANIMATIONS (add to inline <style>):
 - @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-- Apply to sections: style="animation: fadeInUp 0.7s ease-out both; animation-delay: 0.1s"
+- Apply to key sections: style="animation: fadeInUp 0.7s ease-out both; animation-delay: 0.1s"
 - Stagger delays on grid children: 0.1s, 0.2s, 0.3s etc.
 - html { scroll-behavior: smooth; }
-
-FOOTER:
-- Rich multi-column footer with dark background (use ${colors[2]} or a very dark shade)
-- 4 columns: Brand description, Quick Links, Services, Contact info
-- Add social media icon row using Lucide icons (facebook, twitter, instagram, linkedin)
-- Bottom bar with copyright and legal links, separated by border-t border-white/10
 
 CONTENT REQUIREMENTS:
 - Write realistic, professional placeholder text — NOT lorem ipsum. Write as if this is a real ${businessType} business.
 - Every text paragraph must be 2-3 full sentences minimum.
 - Feature/benefit descriptions must be specific and compelling, not generic.
 - Include real-sounding names, titles, and testimonials where applicable.
+- Lead with benefits and outcomes, not features.
 
 TECHNICAL REQUIREMENTS:
 - Return a complete HTML document (<!DOCTYPE html> to </html>)
@@ -355,12 +308,15 @@ TECHNICAL REQUIREMENTS:
 - At the very end of <body>, add: <script>lucide.createIcons();</script>
 - Load Google Fonts for "${headingFont}" and "${bodyFont}" via <link> tag if they're not system fonts
 - Inline <style> must include: html { scroll-behavior: smooth; } body { font-family: '${bodyFont}', system-ui, sans-serif; color: ${colors[2]}; background: ${colors[0]}; } h1,h2,h3,h4,h5,h6 { font-family: '${headingFont}', system-ui, sans-serif; } plus the @keyframes fadeInUp animation
-- Include the glassmorphic sticky header with site name + navigation: ${navLinks}
-- Include a rich 4-column dark footer
+- Include the header with site name + navigation: ${navLinks}
+- Include a footer matching the design direction
 - Make it fully responsive (mobile-first)
 - Use the color palette consistently — backgrounds, text, buttons, accents, borders
 - Include at least 5-6 distinct content sections
-- Do NOT include any explanation or markdown — ONLY the raw HTML`;
+- Do NOT include any explanation or markdown — ONLY the raw HTML
+
+REFERENCE — here is an example of the quality level and design direction expected. Adapt to the business and color palette, do NOT copy verbatim:
+${archetype.referenceSnippet}`;
 
   try {
     const { generateText } = await import("@/lib/ai");
@@ -369,8 +325,9 @@ TECHNICAL REQUIREMENTS:
     let result = "";
     for await (const chunk of generateText(prompt, {
       model: ctx.model,
-      temperature: 0.5,
-      maxTokens: 8192,
+      systemPrompt,
+      temperature: 0.6,
+      maxTokens: 12000,
       onUsage: (usage) => { pageUsage = usage; },
     })) {
       result += chunk;
