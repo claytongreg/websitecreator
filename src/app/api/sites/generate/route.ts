@@ -7,17 +7,26 @@ import { GENERATION_MODEL_IDS } from "@/components/ui/ModelSelector";
 export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const {
-    name,
-    description,
-    businessType,
-    pages,
-    inspirations,
-    style,
-    model: requestedModel,
-  } = body;
-  const model = requestedModel || "claude-opus-4-20250514";
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(
+      JSON.stringify({ error: "Invalid request body" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const name = body.name as string;
+  const description = body.description as string;
+  const businessType = body.businessType as string;
+  const pages = body.pages as unknown[];
+  const inspirations = body.inspirations as {
+    url: string;
+    style: { colors: string[]; fonts: { family: string }[]; layout: string; mood: string };
+  }[] | undefined;
+  const style = body.style as { colors?: string[]; fonts?: { heading: string; body: string }; mood?: string } | undefined;
+  const model = (body.model as string) || "claude-opus-4-20250514";
 
   // Only premium-tier models are allowed for initial site generation
   if (!GENERATION_MODEL_IDS.has(model)) {
@@ -28,23 +37,38 @@ export async function POST(req: NextRequest) {
   }
 
   // Generate subdomain from name
-  const subdomain = name
+  const subdomain = (name as string)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 30);
 
-  const existing = await db.site.findUnique({ where: { subdomain } });
-  const finalSubdomain = existing
-    ? `${subdomain}-${Date.now().toString(36)}`
-    : subdomain;
+  let finalSubdomain: string;
+  let user: { id: string; email: string; name: string | null };
 
-  // Find or create demo user
-  let user = await db.user.findFirst();
-  if (!user) {
-    user = await db.user.create({
-      data: { email: "demo@echowebo.com", name: "Demo User" },
-    });
+  try {
+    const existing = await db.site.findUnique({ where: { subdomain } });
+    finalSubdomain = existing
+      ? `${subdomain}-${Date.now().toString(36)}`
+      : subdomain;
+
+    // Find or create demo user
+    let found = await db.user.findFirst();
+    if (!found) {
+      found = await db.user.create({
+        data: { email: "demo@echowebo.com", name: "Demo User" },
+      });
+    }
+    user = found;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown database error";
+    console.error("Database error during site generation setup:", message);
+    return new Response(
+      JSON.stringify({
+        error: `Database error: ${message}. Make sure DATABASE_URL is set in .env and you have run "npx prisma db push".`,
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   // Normalize pages

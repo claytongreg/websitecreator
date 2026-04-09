@@ -65,7 +65,12 @@ export default function NewSitePage() {
       });
 
       if (!resp.ok) {
-        throw new Error(`Server error: ${resp.status}`);
+        let detail = `Server error: ${resp.status}`;
+        try {
+          const errBody = await resp.json();
+          if (errBody.error) detail = errBody.error;
+        } catch { /* response wasn't JSON */ }
+        throw new Error(detail);
       }
 
       const reader = resp.body?.getReader();
