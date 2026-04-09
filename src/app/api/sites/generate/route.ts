@@ -1,6 +1,10 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { generatePageWithAI } from "../route";
+import { GENERATION_MODEL_IDS } from "@/components/ui/ModelSelector";
+
+// Allow up to 5 minutes for multi-page generation
+export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -13,7 +17,15 @@ export async function POST(req: NextRequest) {
     style,
     model: requestedModel,
   } = body;
-  const model = requestedModel || "gpt-4o-mini";
+  const model = requestedModel || "claude-opus-4-20250514";
+
+  // Only premium-tier models are allowed for initial site generation
+  if (!GENERATION_MODEL_IDS.has(model)) {
+    return new Response(
+      JSON.stringify({ error: "Site generation requires a premium-tier model" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
 
   // Generate subdomain from name
   const subdomain = name
@@ -98,18 +110,24 @@ export async function POST(req: NextRequest) {
             total: totalPages,
           });
 
-          const result = await generatePageWithAI({
-            slug: fp.slug,
-            pageTitle: fp.title,
-            siteName: name,
-            description,
-            businessType,
-            style,
-            inspirations,
-            navLinks,
-            allPages: flatPages.map((p) => p.title),
-            model,
-          });
+          // 90s timeout per page to avoid hanging forever
+          const result = await Promise.race([
+            generatePageWithAI({
+              slug: fp.slug,
+              pageTitle: fp.title,
+              siteName: name,
+              description,
+              businessType,
+              style,
+              inspirations,
+              navLinks,
+              allPages: flatPages.map((p) => p.title),
+              model,
+            }),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error(`Page "${fp.title}" timed out after 90 seconds`)), 90_000)
+            ),
+          ]);
 
           totalInputTokens += result.inputTokens;
           totalOutputTokens += result.outputTokens;

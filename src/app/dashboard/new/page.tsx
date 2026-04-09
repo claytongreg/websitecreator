@@ -73,6 +73,7 @@ export default function NewSitePage() {
 
       const decoder = new TextDecoder();
       let buffer = "";
+      let receivedComplete = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -89,6 +90,7 @@ export default function NewSitePage() {
             setGenerationProgress(event);
 
             if (event.type === "complete" && event.siteId) {
+              receivedComplete = true;
               const parts = [];
               if (event.costCents) parts.push(`generationCost=${event.costCents}`);
               if (selectedModel) parts.push(`generationModel=${encodeURIComponent(selectedModel)}`);
@@ -98,11 +100,18 @@ export default function NewSitePage() {
               setTimeout(() => {
                 router.push(`/editor/${event.siteId}/index${params}`);
               }, 1200);
+            } else if (event.type === "error") {
+              receivedComplete = true; // error is a terminal state too
             }
           } catch {
             // skip malformed lines
           }
         }
+      }
+
+      // Stream ended without a complete or error event — connection was lost
+      if (!receivedComplete) {
+        throw new Error("Connection lost during generation. Please try again.");
       }
     } catch (err) {
       console.error("Failed to create site:", err);
@@ -208,6 +217,7 @@ export default function NewSitePage() {
                 value={selectedModel}
                 onChange={setSelectedModel}
                 pageCount={flattenTree(selectedPages).length}
+                allowedTiers={["premium"]}
               />
             </div>
           </>

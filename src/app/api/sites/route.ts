@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+export const maxDuration = 300;
+
 // GET /api/sites — list all sites or get a specific one
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");

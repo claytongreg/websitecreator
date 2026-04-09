@@ -76,6 +76,11 @@ export const MODELS: ModelOption[] = [
   { id: "claude-opus-4-20250514", name: "Claude Opus 4", provider: "Anthropic", tier: "premium", inputCostPer1k: 1.5, outputCostPer1k: 7.5 },
 ];
 
+/** Model IDs allowed for initial site generation (premium tier only) */
+export const GENERATION_MODEL_IDS = new Set(
+  MODELS.filter((m) => m.tier === "premium").map((m) => m.id)
+);
+
 const TIER_LABELS: Record<string, string> = {
   free: "Free",
   budget: "Budget",
@@ -90,6 +95,8 @@ interface ModelSelectorProps {
   onChange: (modelId: string) => void;
   /** When provided, shows total estimated cost for generating N pages */
   pageCount?: number;
+  /** Restrict which tiers are shown (e.g. ["premium"] for site generation) */
+  allowedTiers?: ModelOption["tier"][];
   className?: string;
 }
 
@@ -99,8 +106,11 @@ function formatCost(cents: number, suffix?: string): string {
   return `~$${(cents / 100).toFixed(3)}${suffix ?? ""}`;
 }
 
-export function ModelSelector({ value, onChange, pageCount, className }: ModelSelectorProps) {
-  const selected = MODELS.find((m) => m.id === value);
+export function ModelSelector({ value, onChange, pageCount, allowedTiers, className }: ModelSelectorProps) {
+  const visibleModels = allowedTiers
+    ? MODELS.filter((m) => allowedTiers.includes(m.tier))
+    : MODELS;
+  const selected = visibleModels.find((m) => m.id === value);
 
   // When pageCount is provided (onboarding), show total cost for all pages
   // Otherwise (editor), show per-edit cost with "/edit" suffix
@@ -109,6 +119,8 @@ export function ModelSelector({ value, onChange, pageCount, className }: ModelSe
       ? formatCost(costPerPage(selected) * pageCount)
       : formatCost(costPerEdit(selected), "/edit")
     : "";
+
+  const visibleTiers = allowedTiers ?? TIERS;
 
   return (
     <div className={className}>
@@ -126,8 +138,8 @@ export function ModelSelector({ value, onChange, pageCount, className }: ModelSe
           </SelectValue>
         </SelectTrigger>
         <SelectContent className="w-72">
-          {TIERS.map((tier) => {
-            const tierModels = MODELS.filter((m) => m.tier === tier);
+          {visibleTiers.map((tier) => {
+            const tierModels = visibleModels.filter((m) => m.tier === tier);
             if (tierModels.length === 0) return null;
             return (
               <div key={tier}>
