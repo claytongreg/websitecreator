@@ -134,7 +134,8 @@ export async function POST(req: NextRequest) {
             total: totalPages,
           });
 
-          // 90s timeout per page to avoid hanging forever
+          // Timeout per page — Opus-class models need more time for large templates
+          const PAGE_TIMEOUT_MS = 180_000; // 3 minutes
           const result = await Promise.race([
             generatePageWithAI({
               slug: fp.slug,
@@ -149,7 +150,7 @@ export async function POST(req: NextRequest) {
               model,
             }),
             new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error(`Page "${fp.title}" timed out after 90 seconds`)), 90_000)
+              setTimeout(() => reject(new Error(`Page "${fp.title}" timed out after ${PAGE_TIMEOUT_MS / 1000} seconds`)), PAGE_TIMEOUT_MS)
             ),
           ]);
 
