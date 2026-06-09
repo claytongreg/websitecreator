@@ -1,6 +1,12 @@
 # EchoWebo
 
-> **Sync Policy**: Project-specific guidance. For general workflow practices, see the root workspace [`../CLAUDE.md`](../CLAUDE.md).
+> **Sync Policy**: Project-specific guidance. Shared workflow inherits from the root workspace [`../AGENTS.md`](../AGENTS.md), with Claude-specific notes in [`../CLAUDE.md`](../CLAUDE.md). Keep shared project facts aligned with [`AGENTS.md`](AGENTS.md).
+
+<!-- BEGIN:nextjs-agent-rules -->
+## Next.js 16 Warning
+
+This version has breaking changes - APIs, conventions, and file structure may differ from older training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing code that depends on framework behavior. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
 
 AI-powered website builder with a password-gated dashboard, a multi-step site-generation wizard, and an iframe-based visual editor for full HTML pages.
 

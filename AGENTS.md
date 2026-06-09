@@ -4,6 +4,28 @@
 This version has breaking changes - APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+> **Sync Policy**: Project-specific guidance. Shared workflow inherits from the root workspace [`../AGENTS.md`](../AGENTS.md), with Claude-specific notes in [`../CLAUDE.md`](../CLAUDE.md). Keep shared project facts aligned with [`CLAUDE.md`](CLAUDE.md).
+
+EchoWebo is an AI-powered website builder with a password-gated dashboard, a multi-step site-generation wizard, and an iframe-based visual editor for full HTML pages.
+
+## Tech Stack
+
+- **Framework**: Next.js 16.2.2 (App Router) + React 19 + TypeScript
+- **Styling**: Tailwind CSS v4 + Base UI/shadcn wrappers
+- **Data**: PostgreSQL + Prisma ORM
+- **State**: Zustand for editor state/history
+- **AI**: Provider registry in `src/lib/ai/` for OpenAI, Anthropic, Gemini, Groq, Mistral, DeepSeek, and Grok
+
+## Commands
+
+```bash
+npm run dev          # Start dev server
+npm run build        # Production build
+npm run lint         # ESLint
+npx prisma db push   # Push schema to database
+npx prisma studio    # Database GUI
+```
+
 ## Codebase Overview
 
 EchoWebo is a password-gated AI website builder built on Next.js 16.2.2 App Router. The core product flows are a multi-step onboarding wizard in `src/app/dashboard/new/page.tsx`, an iframe-based visual editor in `src/app/editor/[siteId]/[pageSlug]/page.tsx`, Prisma-backed site/page persistence in `prisma/schema.prisma`, and a pluggable AI provider registry in `src/lib/ai/`.
@@ -12,6 +34,43 @@ EchoWebo is a password-gated AI website builder built on Next.js 16.2.2 App Rout
 **Structure**: `src/app` for routes and route handlers, `src/components/editor` and `src/components/onboarding` for the two main UI flows, `src/lib/editor` for editor state/utilities, `src/lib/ai` for model adapters, and `src/types/index.ts` for shared contracts.
 
 For detailed architecture, data flow, gotchas, and navigation paths, see [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md).
+
+## Project Structure
+
+```text
+src/
+  app/
+    dashboard/        # Site listing and onboarding entry
+    editor/[siteId]/  # Visual editor route
+    login/            # Password gate UI
+    api/ai/           # AI generation, image, style extraction/generation
+    api/sites/        # Site CRUD and generation pipeline
+    api/pages/        # Page save/versioning
+  components/
+    editor/           # Iframe editor, toolbar, prompt bar, photo/theme tools
+    onboarding/       # Wizard steps and page-tree builder
+    ui/               # Base UI/shadcn wrappers and model selector
+  lib/
+    ai/               # Provider registry and adapters
+    editor/           # Zustand store, DOM helpers, theme CSS
+    db.ts             # Prisma singleton
+    page-tree.ts      # Nested page-tree helpers
+  types/              # Shared TypeScript contracts
+prisma/
+  schema.prisma       # 9 models for sites, pages, versions, inspirations, usage
+```
+
+## Conventions
+
+- Middleware in `src/middleware.ts` protects most routes behind a password cookie set by `src/app/api/auth/login/route.ts`.
+- The editor operates on stored HTML documents rendered inside an iframe, not on React component trees.
+- AI backends register through side-effect imports in `src/lib/ai/index.ts`, while visible model choices are defined separately in `src/components/ui/ModelSelector.tsx`.
+- Theme settings persist separately from page HTML and are regenerated into CSS for editor rendering.
+
+## Notes
+
+- `src/app/api/sites/route.ts` is the main site-generation and site-management hotspot.
+- `README.md` is still the default create-next-app starter README and is not an accurate architecture reference.
 
 ## Changelog Policy
 
